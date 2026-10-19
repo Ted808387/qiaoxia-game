@@ -3239,6 +3239,30 @@ FILL.push({id:'gx_burn',ch:[2,3,4,5,6],loc:'*',cond:S=>(S.f.grayBurn||0)>0,w:3,r
   {t:'回橋下幫以前的鄰居搬東西',show:housed,req:{hp:40},r:{t:'你冒雨走回橋下。以前睡你旁邊的人看到你，愣了一下，然後把一袋東西塞到你手上：「幫我拿上去。」\n\n你們搬到半夜。回去的時候，你全身濕透，但手是熱的。',hp:-6,con:8,rep:8}}
  )}
 
+/* ═════════ 修正：陳老闆、阿財說有工，問完要能當場決定接不接 ═════════ */
+const canWork=S=>!S.biz&&S.path!=='peer';
+function offerJob(key,id,flag,first,again,take,pass){
+ const j=JOBS[key];const req={...j.req};delete req.flag;
+ EV[id]={scene:j.loc,title:j.name,text:()=>first,
+  ch:[
+   {t:`接下來（${j.name} ${j.income}/天）`,show:canWork,req,r:{t:take,job:{name:j.name,income:j.income,wear:j.wear,meals:0},path:'work',days:0,log:`開始做「${j.name}」`}},
+   {t:'先不要',r:{t:pass,days:0}}
+  ]};
+ const n=NPCS[id.split('_')[0]];const r0=n.sp.r,t0=typeof r0==='function'?r0:()=>({...r0});
+ n.sp.r=S=>{const had=F(S,flag);const r=had?{t:again}:t0(S);
+  if(S.job&&S.job.name===j.name)return {t:had?`你已經在做「${j.name}」了。`:r.t,...(had?{}:{set:r.set,mind:r.mind,log:r.log})};
+  if(canWork(S)&&!S.queue.includes(id))S.queue.push(id);
+  return r}}
+NPCS.chen.sp.r={...NPCS.chen.sp.r,t:'陳老闆嚼著檳榔看你：「綁鐵，一天六百六，下雨沒錢。要做的話，明天五點。」'};
+offerJob('rebar','chen_offer','chenJob','陳老闆把檳榔渣吐在水溝裡，等你回答。\n\n綁鐵是工地最傷的活，整天彎腰，手套一個禮拜磨破一雙。但是陳老闆的班，有做就有錢。',
+ '陳老闆說工還在：「要的話，明天五點。」',
+ '隔天五點，你站在工地門口。陳老闆丟給你一雙手套：「先看別人怎麼綁。」',
+ '你說再想想。陳老闆點點頭：「想好了自己來工地找我。」');
+offerJob('sorter','cai_offer','caiJob','阿財把秤擦乾淨，看著你。\n\n分類工要整天蹲在廢鐵堆裡，夏天熱，冬天手會裂。但每天都有班，不看天氣。',
+ '阿財說場裡還缺人：「你要來，明天就可以。」',
+ '阿財給你一副棉手套，帶你看了一遍場子：「銅放這邊，鋁放那邊，有人拿電纜來，先問我。」',
+ '你說再想想。阿財說：「好，你想來的時候，場子都在。」');
+
 return {items,pawnItem,redeemItem,sellID,achCheck,ACH,HINT,turning,invOf,jobInfo,takeNotices,CARDS,drawCards,applyCard,JOBS,NPCS,jobsAt,takeJob,quitJob,npcsAt,meet,tenYears,trustOf,MAPLOC,mapInfo,visit,miniSetup,finishMini,simMini,ORIGINS,CH,EV,ENDINGS,STAGES,LOC,BIZ,DIFF,WORLD,MODES,newState,view,choose,advance,stageOf,goalText,season,dateStr,endingText:endingText3,epilogue:epilogue2,isRoom,worth,memory,people,quitGig,canQuitGig};
 })();
 if(typeof module!=='undefined')module.exports=G;
