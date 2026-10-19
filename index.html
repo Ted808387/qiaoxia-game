@@ -3301,6 +3301,71 @@ ins(6,'pol_term','pol_aide');ins(6,'b6_betray','pol_service');ins(6,'c6_zheng','
  }
  if(y)out[0]=y;return out}}
 
+/* ═════════ 第五階新路線：社福的協會理事長、打工的工會理事長 ═════════ */
+const onPeer=S=>S.path==='peer'&&!S.biz;
+Object.assign(EV,{
+s_assoc:{scene:'office',tod:'dusk',npc:'lin',skip:S=>!onPeer(S),title:'立案',
+ text:()=>'林姐說，市府明年要把街友外展整包委外，一年八百萬。條件只有一個：要一個立案的協會。\n\n「大基金會一定會來搶。可是他們的人，連橋下的味道都受不了。」她看著你，「你要不要自己來？」\n\n立案要錢、要章程、要七個理事。你數了數，你認識的人裡面，有身分證又願意簽名的，剛好七個。',
+ ch:[
+  {t:'自己成立協會',req:{rep:45,money:20000},r:{t:'立案證書寄來的那天，七個理事擠在你三坪的房間裡拍照。其中四個，以前都睡過橋下。\n\n協會的名字，是阿伯取的：「橋下」。',money:-20000,rep:6,mind:-3,set:{assoc:1},log:'成立了自己的協會'}},
+  {t:'不了，留在林姐身邊',r:{t:'林姐說也好，「這種事，要先有人被燒過一次才知道多燙」。',mind:2}}
+ ]},
+s_assoc2:{scene:'office',tod:'day',skip:S=>!onPeer(S)||!F(S,'assoc'),title:'標案',
+ text:()=>'委託案的評選會下個月開。你的協會成立不到一年，服務人次只有規定的一半。\n\n社會局的一個科長約你喝咖啡，講了很久的天氣，最後說：「評審那邊要打點一下，一成。人次的部分，大家都是用估的。」\n\n大基金會的簡報做了八十頁。你的只有十二頁，裡面有六頁是照片。',
+ ch:[
+  {t:'給一成，把人次寫滿',r:{t:'評選會上，你的十二頁簡報得了最高分。科長在走廊上拍拍你的肩膀。\n\n第一筆款撥下來那天，你在協會的帳上，開了一個不能給理事看的科目。',rep:8,con:-14,set:{assocDirty:1,assocWon:1},log:'用回扣和灌水的人次標下委託案'}},
+  {t:'照實寫，公開去比',r:(S,R)=>R()<.4+S.rep/250?{t:'評審裡有一個退休的老社工。她翻到第六頁，看到一張橋下的照片，問你：「這個人現在呢？」你說他現在是你們協會的理事。\n\n你們標到了。',rep:10,con:4,set:{assocWon:1},log:'公開競標，標下市府的委託案'}:{t:'大基金會標走了。他們的社工第一次去橋下，戴著口罩。\n\n協會還在，只是很小，小到每個月的房租都要你自己貼。',mind:-6,rep:3}},
+  {t:'不標，去大基金會底下當分包',r:{t:'你們接一小塊，做大基金會不想做的部分：凌晨的外展、沒有身分證的人。錢不多，但都是做實事。',rep:3,mind:2}}
+ ]},
+w5_union:{scene:S=>S.job&&/工地|綁鐵/.test(S.job.name)?'site':'alley',tod:'dusk',skip:S=>!worker(S),title:'自救會',
+ text:S=>`${S.job?`「${S.job.name}」這裡`:'你常去做工的地方'}，薪水已經連續三個月晚發，加班費一毛都沒算。\n\n休息的時候，工友們蹲在一起抽菸，有人說要組自救會，去勞工局申請調解。說了半天，沒有人敢第一個簽名。\n\n大家都在看你。`,
+ ch:[
+  {t:'帶頭，第一個簽名',req:{rep:25},r:(S,R)=>{const fired=R()<.2;return {t:fired?'你把名字簽在第一行。隔週，老闆找了一個理由，說你這個月不用來了。\n\n工友們沒有散。他們說，你被開除，就是最好的證據。':'你把名字簽在第一行。後面的人一個接一個簽，最後簽滿了兩張紙。\n\n老闆從此看你的眼神不一樣了。',rep:6,con:4,mind:-3,set:{unionLead:1},...(fired?{job:null}:{}),log:'帶頭組了工人自救會'}}},
+  {t:'跟著簽名，但不帶頭',r:{t:'你簽在第十一行。帶頭的人是一個做了二十年的老師傅，他說：「有人簽就好。」',rep:2,set:{unionMember:1}}},
+  {t:'不簽',r:{t:'你說你還有房租要繳。大家點點頭，沒有人怪你，也沒有人再問你。',mind:-1}}
+ ]},
+w6_strike:{scene:'office',tod:'day',skip:S=>!worker(S)||!F(S,'unionLead'),title:'協調會',
+ text:()=>'勞資協調會那天，資方的律師晚到了半小時。\n\n休息時間，資方的經理把你叫到樓梯間，遞給你一個信封：「八萬。你回去跟大家說，公司已經盡力了，大家各退一步。」\n\n會議室裡，工友們在等你回去。',
+ ch:[
+  {t:'收下，勸大家接受',r:{t:'你回到會議室，說公司真的沒錢了。有人罵你，有人默默簽了和解書。\n\n那天晚上，你把信封裡的錢數了兩次。',money:80000,con:-14,rep:2,set:{unionDirty:1},log:'協調會上收了資方的錢'}},
+  {t:'回會議室，堅持全額補發',r:(S,R)=>R()<.45+S.rep/250?{t:'你把三個月的出勤紀錄一張一張攤在桌上。調解委員看完，轉頭問律師：「這個你們要怎麼解釋？」\n\n公司全額補發。工友們在勞工局門口，把你抬起來。',money:S.job?S.job.income*20:6000,rep:10,con:4,set:{unionWin:1},log:'帶工友打贏勞資爭議'}:{t:'調解破裂。律師說，有意見就去法院。\n\n工友們沒有散。有人說，那就去法院。',mind:-6,rep:4,set:{unionFight:1}}},
+  {t:'帶大家去勞動部門口靜坐',req:{hp:40},r:(S,R)=>R()<.55?{t:'你們在勞動部門口坐了三天。第三天，記者來了。第四天，公司的董事長親自打電話來。\n\n全額補發，一毛都沒少。',hp:-8,rep:10,con:4,set:{unionWin:1},log:'帶工友靜坐，爭回欠薪'}:{t:'你們坐了一個禮拜，下了三天雨。最後只有你跟兩個老師傅還坐著。',hp:-10,mind:-4,rep:5,set:{unionFight:1}}}
+ ]},
+w6_union_vote:{scene:'office',tod:'night',skip:S=>!worker(S)||!F(S,'unionLead')||!(F(S,'unionWin')||F(S,'unionFight')||F(S,'unionDirty')),title:'改選',
+ text:S=>`產業工會改選理事長。老理事長說他做不動了，會員大會上，大家一直看你。\n\n${F(S,'unionDirty')?'場外停了一台黑色的車，資方的經理坐在裡面。他前一天打電話給你：「你出來選，票我們幫你處理。」':'對手是資方支持的人，他的競選傳單印得比你的好看很多。'}`,
+ ch:[
+  {t:'出來選',req:{rep:40},r:(S,R)=>F(S,'unionDirty')?{t:'開票的時候，很多你沒見過的會員，都投給了你。你當選了。\n\n資方的經理在場外按了兩聲喇叭，開走了。',rep:6,con:-6,set:{unionChair:1},log:'選上工會理事長（資方幫忙拉票）'}:R()<.45+S.rep/200?{t:'你以十一票之差當選。上台的時候，你不知道要說什麼，最後只說了一句：「工錢，要準時發。」\n\n台下的人笑了，然後鼓掌。',rep:8,con:4,set:{unionChair:1},log:'選上工會理事長'}:{t:'你輸了十一票。對手上台的時候，跟你握了手，握得很用力。',mind:-4,rep:2}},
+  {t:'推老師傅出來選',r:{t:'老師傅選上了。他說副理事長的位子留給你，你說你還是比較習慣在現場。',mind:2,rep:2}}
+ ]}
+});
+ins(6,'s_office','s_assoc');ins(6,'b6_final','s_assoc2');ins(5,'w5_side','w5_union');ins(6,'w6_chance','w6_strike');ins(6,'b6_injury','w6_union_vote');
+Object.assign(ENDINGS,{
+ assoc:{name:'協會理事長',req:'走社福的路 · 自己立案、公開標下市府委託案 · 良知 70 · 人脈 60 · 自己的房間',tier:5},
+ assoc_dark:{name:'吃補助的協會',req:'標下市府的委託案，靠的是回扣、灌水的數字或來路不明的錢 · 人脈 50',tier:5},
+ union:{name:'工會理事長',req:'不做生意 · 帶頭爭回工錢 · 選上理事長 · 良知 60 · 人脈 55',tier:5},
+ union_dark:{name:'資方的工會',req:'選上工會理事長，但拿過資方的錢 · 人脈 45',tier:5}
+});
+Object.assign(EXT_END,{
+ assoc:S=>`協會的辦公室在一間老公寓的二樓，樓梯很窄，冬天的時候，常常有人睡在樓梯間。你沒有趕他們。\n\n市府的委託案做到第二年，你在社會局的會議桌上有了一個位子。開會的時候，你是唯一一個知道橋下哪根柱子最擋風的人。${F(S,'haoSaved')?'\n\n阿豪現在是協會的正職外展員。他第一次領薪水，請全辦公室喝珍奶。':''}`,
+ assoc_dark:S=>`協會越做越大，辦公室搬到了一棟有電梯的大樓。年度成果報告印得很漂亮，服務人次一年比一年多。\n\n${F(S,'fundTaken')?'那間「萬心慈善基金會」，每年都是你們最大的捐款人。':'科長升了處長，每年的委託案，都是你們的。'}\n\n有時候你去橋下拍成果照片，那裡的人看著你的相機，你看著他們。你們都知道那些數字是怎麼來的。`,
+ union:S=>`工會的辦公室在一間鐵皮屋裡，牆上貼著一張很大的白紙，上面寫著每一家欠薪公司的名字。每追回一筆，就劃掉一個。\n\n你現在每天的工作，是陪工人去勞工局、法扶、醫院。${S.job?`你還是會去做「${S.job.name}」，每個禮拜兩天，`:'你偶爾還是會去工地打零工，'}你說，不做工的人，不知道工人在痛什麼。`,
+ union_dark:S=>`你當上理事長以後，工會很安靜。勞資協調會一年比一年少，資方的尾牙，每年都請你坐主桌。\n\n有一年，一個年輕的工人摔下鷹架，家屬來工會求助。你打了一通電話，第二天，家屬簽了和解書。\n\n你跟自己說，至少他們拿到了錢。`
+});
+Object.assign(HINT,{assoc:'不只拉人，還要自己蓋一個能拉更多人的地方。',assoc_dark:'補助的錢，也是可以吃的。',union:'不開公司，也能讓一群人站起來。',union_dark:'工人的頭，也可以賣。'});
+Object.assign(ENDGROUP,{assoc:'peer',assoc_dark:'dark',union:'stable',union_dark:'dark'});
+{const R0=resolveEnd;resolveEnd=function(S,R=Math.random){
+ if(S.end==='auto'&&!S.biz&&!F(S,'bankrupt')&&!F(S,'polWon')&&!F(S,'polLost')){let k=null;
+  if(onPeer(S)&&F(S,'assocWon')){const dirty=F(S,'assocDirty')||F(S,'fundTaken');if(dirty&&S.rep>=50)k='assoc_dark';else if(!dirty&&S.con>=70&&S.rep>=60&&isRoom(S))k='assoc'}
+  else if(F(S,'unionChair')){if(F(S,'unionDirty')&&S.rep>=45)k='union_dark';else if(!F(S,'unionDirty')&&S.con>=60&&S.rep>=55)k='union'}
+  if(k){S.end=k;return k}}
+ return R0(S,R)}}
+{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=AGE[S.origin]+12;
+ const Y={assoc:`你 ${A} 歲了。協會有三十幾個員工，一半以上睡過橋下。你把理事長的位子交出去那天，新的理事長是你第一年接的個案。`,
+  assoc_dark:`你 ${A} 歲了。協會的帳，在你卸任前一年被監察院調查。你在記者會上說「所有支出都有憑證」。這句話是真的。`,
+  union:`你 ${A} 歲了。工會那張白紙換過六張，劃掉的名字比沒劃掉的多。立法院修職災保險法那年，請你去公聽會作證。`,
+  union_dark:`你 ${A} 歲了。你從工會退下來，資方給你一個顧問的頭銜。每年工安週，你都會收到一張邀請卡，你從來沒去過。`};
+ if(Y[key]){if(out.length)out[0]=Y[key];else out.push(Y[key])}return out}}
+
 return {items,pawnItem,redeemItem,sellID,achCheck,ACH,HINT,turning,invOf,jobInfo,takeNotices,CARDS,drawCards,applyCard,JOBS,NPCS,jobsAt,takeJob,quitJob,npcsAt,meet,tenYears,trustOf,MAPLOC,mapInfo,visit,miniSetup,finishMini,simMini,ORIGINS,CH,EV,ENDINGS,STAGES,LOC,BIZ,DIFF,WORLD,MODES,newState,view,choose,advance,stageOf,goalText,season,dateStr,endingText:endingText3,epilogue:epilogue2,isRoom,worth,memory,people,quitGig,canQuitGig};
 })();
 if(typeof module!=='undefined')module.exports=G;
