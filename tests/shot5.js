@@ -1,8 +1,7 @@
 const {chromium}=require('playwright');
 (async()=>{const b=await chromium.launch({executablePath:process.env.CHROME||undefined});
 const pg=await b.newPage({viewport:{width:1280,height:800}});const errs=[];pg.on('pageerror',e=>errs.push(e.message));
-const html=require('fs').readFileSync(require('path').join(__dirname,'..','index.html'),'utf8');
-await pg.setContent('<!doctype html><html><head><meta charset="utf-8"></head><body>'+html+'</body></html>');
+await pg.goto('file://'+require('path').join(__dirname,'..','index.html'));
 await pg.waitForTimeout(400);
 await pg.click('#galBtn');await pg.waitForTimeout(300);await pg.screenshot({path:'n_gallery.png'});await pg.click('#dlgBack');
 await pg.click('.origin[data-k="debt"]');await pg.waitForTimeout(200);await pg.click('.scard');await pg.waitForTimeout(500);

@@ -4,17 +4,23 @@
 
 ## 檔案
 
-- `index.html`：**唯一的正式檔案**。單一 HTML，沒有後端、沒有外部函式庫（只載入 Google Fonts）。全部在瀏覽器裡跑，存檔放 localStorage。
+- `index.html`：頁面標記，載入下面的 css/js。沒有後端、沒有建置工具、沒有外部函式庫（只載入 Google Fonts）。全部在瀏覽器裡跑，存檔放 localStorage。
+- `css/style.css`、`js/logic.js`、`js/scene.js`、`js/ui.js`：正式內容，詳見下節。都是 classic script（不是 module），頂層宣告跨檔共用全域，不要加 import/export。
 - `tests/`：Node 模擬和 Playwright 瀏覽器測試。
-- `history/ext*.js`：歷次擴充的原始片段，僅供參考，已經全部合進 index.html。
+- `history/ext*.js`：歷次擴充的原始片段，僅供參考，已經全部合進 js/logic.js。
 
-已發布的版本：claude.ai Artifact「橋下一年」（`https://claude.ai/artifact/XRKMqwTc3sZoq4d3cZ1XZc`）。從別的對話更新時，要帶這個 URL 發布，否則會變成新的頁面。
+已發布的版本：claude.ai Artifact「橋下一年」（`https://claude.ai/artifact/XRKMqwTc3sZoq4d3cZ1XZc`）。從別的對話更新時，要帶這個 URL 發布，否則會變成新的頁面。拆檔後發布要用 `files` 一併帶上 `css/style.css`、`js/logic.js`、`js/scene.js`、`js/ui.js`（該 Artifact 目前仍是拆檔前的舊版）。
+
+GitHub Pages：`https://ted808387.github.io/qiaoxia-game/`，從 `main` 分支發布；平常在 `dev` 開發，測試沒問題再合併到 `main`。
 
 ## index.html 的結構
 
-1. `<style>`：CSS 變數在 `:root`（深色、鈉燈色系），版面是左邊動畫、右邊帳本＋劇情。手機版（≤860px）上下排。
-2. `<script id="logic">`：遊戲邏輯 IIFE `G`，最後 `if(typeof module!=='undefined')module.exports=G`，所以可以直接被 Node `require`。
-3. 第二個 `<script>`：`Scene`（Canvas 程序繪圖的 15 個場景＋後製光暈/倒影/鏡頭）、`Ambient`（WebAudio 即時合成環境音）、UI（HUD、事件、地圖、小遊戲、背包、圖鑑、結局）。
+1. `css/style.css`：CSS 變數在 `:root`（深色、鈉燈色系），版面是左邊動畫、右邊帳本＋劇情。手機版（≤860px）上下排。
+2. `js/logic.js`：遊戲邏輯 IIFE `G`，最後 `if(typeof module!=='undefined')module.exports=G`，所以可以直接被 Node `require`。
+3. `js/scene.js`：`Scene`（Canvas 程序繪圖的 15 個場景＋後製光暈/倒影/鏡頭）、`Ambient`（WebAudio 即時合成環境音）。
+4. `js/ui.js`：UI（HUD、事件、地圖、小遊戲、背包、圖鑑、結局）。
+
+載入順序：logic → scene → ui（index.html 尾端，順序不能換）。
 
 ## 邏輯的寫法（重要）
 
@@ -34,12 +40,13 @@
 
 ```
 cd tests
-node extract.js                 # 從 index.html 抽出 logic.js
-node sim16.js rand              # 6000 輪隨機玩，err 必須是 0
-node sim16.js gang              # 專走黑道
-node econ4.js ./logic.js 600 street   # 謹慎玩家的經濟曲線，看有沒有變太簡單或太難
-npm i playwright && node shot4.js     # 瀏覽器完整玩一輪（需要 Chromium；可用環境變數 CHROME 指定路徑）
-node scshot.js out              # 15 個場景截圖（先 mkdir out）
+N=~/.nvm/versions/node/v22.17.0/bin/node   # 預設 node 是 v8，不支援 ??，要用這個
+$N extract.js                   # 把 js/logic.js 複製成 tests/logic.js
+$N sim16.js rand              # 6000 輪隨機玩，err 必須是 0
+$N sim16.js gang              # 專走黑道
+$N econ4.js ./logic.js 600 street   # 謹慎玩家的經濟曲線，看有沒有變太簡單或太難
+npm i playwright && $N shot4.js     # 瀏覽器完整玩一輪（需要 Chromium；可用環境變數 CHROME 指定路徑）
+$N scshot.js out              # 15 個場景截圖（先 mkdir out）
 ```
 
 平衡參考值（改動前後要比對）：謹慎玩家在「街頭」難度死亡率約 0%、第六章開始時身價中位數約 50 萬；隨機玩的結局分布不應有大幅跳動。

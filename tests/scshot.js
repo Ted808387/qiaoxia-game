@@ -1,8 +1,7 @@
 const {chromium}=require('playwright');const out=process.argv[2]||'base';
 (async()=>{const b=await chromium.launch({executablePath:process.env.CHROME||undefined});
 const pg=await b.newPage({viewport:{width:1280,height:800}});const errs=[];pg.on('pageerror',e=>errs.push(e.message));
-const html=require('fs').readFileSync(require('path').join(__dirname,'..','index.html'),'utf8');
-await pg.setContent('<!doctype html><html><head><meta charset="utf-8"></head><body>'+html+'</body></html>');
+await pg.goto('file://'+require('path').join(__dirname,'..','index.html'));
 await pg.waitForTimeout(400);await pg.evaluate(()=>{document.querySelector('#intro').hidden=true});
 const L=[['station','night','zheng'],['bridge','night',null],['park','dusk','wang'],['alley','night','kai'],['site','day','luo'],['market','night','chang'],['room','night',null],['yard','night',null],['hospital','day',null],['temple','dusk',null],['river','dusk',null],['ximen','night',null],['underpass','night',null],['sea','dawn',null],['office','day','lin']];
 const t0=Date.now();

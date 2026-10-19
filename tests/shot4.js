@@ -1,8 +1,7 @@
 const {chromium}=require('playwright');
 (async()=>{const b=await chromium.launch({executablePath:process.env.CHROME||undefined});
 const pg=await b.newPage({viewport:{width:1280,height:800}});const errs=[];pg.on('pageerror',e=>errs.push(e.message));
-const html=require('fs').readFileSync(require('path').join(__dirname,'..','index.html'),'utf8');
-await pg.setContent('<!doctype html><html><head><meta charset="utf-8"></head><body>'+html+'</body></html>');
+await pg.goto('file://'+require('path').join(__dirname,'..','index.html'));
 await pg.waitForTimeout(400);await pg.click('.origin[data-k="excon"]');await pg.waitForTimeout(300);await pg.screenshot({path:'d_cards.png'});await pg.click('.scard');
 let did={job:0,npc:0},k=0;
 for(;k<600;k++){await pg.evaluate(()=>{if(typing)typing.finish()});
