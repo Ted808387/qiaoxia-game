@@ -3056,6 +3056,49 @@ function noKai(S,t){if(!KG(S)||typeof t!=='string')return t;const j=F(S,'kaiJail
 {const c=EV.fest_ghost.ch.find(x=>/幫阿凱/.test(x.t));const s0=c.show;c.show=S=>!KG(S)&&s0(S)}
 {const f=FILL.find(x=>x.id==='lk_lin_kai');const c0=f.cond;f.cond=S=>!KG(S)&&c0(S)}
 
+/* ═════════ 不冒險的人：第五、六章的岔路 ═════════ */
+const worker=S=>S.path==='work'&&!S.biz;
+EV.w5_cert={scene:S=>isRoom(S)?'room':'alley',title:'證照',skip:S=>!worker(S)||F(S,'skill'),
+ text:()=>`工寮的公布欄上貼著一張職訓局的單子：「政府補助，丙級證照班，週末上課，三個月。」\n\n底下有人用原子筆寫了一行：「考過了，日薪多兩百。」\n\n三個月的週末，等於少做十幾天的工。考不過，那些錢就白丟了。`,
+ ch:[
+  {t:'報名，週末都去上課',req:{id:1,mind:35},r:(S,R)=>R()<.5+S.mind/200?{t:'你上課的時候一直想睡，回家還要背題目。考術科那天，你的手很穩。\n\n證照寄來的時候，你把它跟身分證收在一起。',money:-3000,hp:-4,mind:4,rep:4,days:20,set:{skill:1},...(S.job?{job:{...S.job,income:S.job.income+80}}:{}),log:'考到丙級證照'}:{t:'術科差兩分。監考的人說下次再來，你說好。\n\n你知道你不會再來了。',money:-3000,hp:-4,mind:-6,days:20}},
+  {t:'不去，週末還要上工',r:{t:'你把單子撕下來，折一折，塞進口袋。後來那張紙洗衣服的時候爛掉了。',mind:-1,days:7}}
+ ]};
+EV.w6_chance={scene:S=>S.job&&/工地/.test(S.job.name)?'site':'alley',title:'收山',skip:S=>!worker(S),
+ text:S=>`${S.job?`「${S.job.name}」的老闆`:'一個你常去做臨時工的老闆'}說，他做到這個月底就要收了。\n\n「有幾個小案子，業主問我有沒有人可以接。你有證照的話，我把你介紹過去。工具錢你自己出，人你自己找。」\n\n他停了一下，又說：「不然，我朋友的公司在找正職，有勞健保。錢沒比較多，但是穩。」`,
+ ch:[
+  {t:'接下小案子，自己帶人',req:{flag:'skill',hp:45,money:5000},r:{t:'第一個案子是一間老公寓換水管。你找了兩個以前一起在騎樓下等工的人，跟他們說：「錢我不會少給。」\n\n你沒有押下全部，只押了五千塊跟你的名字。',money:-5000,biz:{type:'crew',name:'你的工班'},log:'接下老闆收山留下的小案子'}},
+  {t:'去朋友的公司當正職',req:{rep:25},r:S=>({t:'第一天，人事拿了一張表給你填，有一格是「緊急聯絡人」。你看了很久。\n\n薪水準時進帳，每個月都一樣。你開始忘記，以前是怎麼算明天的錢。',job:{name:'正職倉管',income:Math.max(520,S.job?S.job.income:0),wear:.05,stable:1},mind:5,set:{steadyJob:1},log:'當上有勞健保的正職'})},
+  {t:'都不要，自己再找',r:{t:'老闆拍拍你的肩膀，說你有骨氣。月底他的招牌拆下來，你在騎樓下又等了一個早上。',mind:-3}}
+ ]};
+ins(5,'w5_promo','w5_cert');ins(6,'w6_pyramid','w6_chance');
+
+/* ═════════ 死前預兆：安全網用掉之後，倒下之前先有徵兆 ═════════ */
+const saved=(S,re)=>S.log.some(l=>re.test(l.t));
+EV.omen_hp={scene:S=>isRoom(S)?'room':'bridge',title:'咳',
+ text:S=>`你已經咳了兩個禮拜。今天早上起來，衛生紙上有一點血絲。\n\n上樓梯要停兩次，蹲下去綁鞋帶，眼前會黑一下。${saved(S,/被救了回來/)?'\n\n上次在醫院醒來，醫生說過：「下一次，不一定救得回來。」':'\n\n你知道身體在跟你討債。'}`,
+ ch:[
+  {t:'去和平醫院看門診，花一千五',req:{money:1500},r:{t:'醫生聽了很久，開了一包藥，叫你一個禮拜不要做粗工。\n\n你照做了。少賺的錢，你不敢算。',money:-1500,hp:20,days:4,noIncome:1}},
+  {t:'停工幾天，好好吃、好好睡',req:{money:500},r:{t:'你買了一鍋雞湯，睡了三天。醒來的時候，咳嗽少了一點。',money:-500,hp:10,mind:2,days:4,noIncome:1}},
+  {t:'去廟口的義診站排隊',r:{t:'排了兩個小時。志工醫生量了血壓，給你一袋維他命跟一張轉診單，叫你一定要去大醫院。',hp:5,days:1}},
+  {t:'撐著，明天還要上工',r:{t:'你吞了兩顆成藥，把咳嗽壓下去。\n\n工頭沒發現。你自己知道。',mind:-1,days:1}}
+ ]};
+EV.omen_mind={scene:'temple',title:'聲音',
+ text:S=>`這幾天，你一直聽到有人叫你的名字，回頭都沒有人。\n\n你在超商門口站了二十分鐘，想不起來自己要買什麼。晚上睡不著，白天醒不過來。${saved(S,/療養院/)?'\n\n療養院給的回診單，還折在你的身分證後面。':''}`,
+ ch:[
+  {t:'去看身心科，花六百',req:{money:600},r:{t:'醫生問了很多問題，你答得很慢。他調了藥，說兩個禮拜後再來。\n\n那天晚上，你睡了六個小時。',money:-600,mind:16,days:2}},
+  {t:'去找林姐說說話',show:S=>F(S,'lin'),r:{t:'林姐沒有勸你什麼，只是聽。你講到一半哭了，她遞衛生紙給你，繼續聽。',mind:12,days:2}},
+  {t:'去龍山寺坐一個下午',r:{t:'香很濃，人很多，沒有人看你。你坐到傍晚，腦袋裡的聲音小了一點。',mind:6,days:1}},
+  {t:'喝一點，讓聲音小一點',r:{t:'第一瓶下去，聲音真的不見了。第二瓶下去，你忘了為什麼要喝。',mind:6,addict:10,hp:-3,days:1}},
+  {t:'不管它',r:{t:'你跟自己說，這只是累了。',days:1}}
+ ]};
+{const A0=advance;advance=function(S,R=Math.random){
+ if(!S.end&&S.ch>=1&&!S.queue.length&&S.diff!=='hell'){
+  if(S.netHp&&S.hp>.5&&S.hp<=22&&S.day-(S.f.omenHp||-99)>=40){S.f.omenHp=S.day;return {type:'event',id:'omen_hp'}}
+  if(S.netMind&&S.mind>.5&&S.mind<=22&&S.day-(S.f.omenMind||-99)>=40){S.f.omenMind=S.day;return {type:'event',id:'omen_mind'}}
+ }
+ return A0(S,R)}}
+
 return {items,pawnItem,redeemItem,sellID,achCheck,ACH,HINT,turning,invOf,jobInfo,takeNotices,CARDS,drawCards,applyCard,JOBS,NPCS,jobsAt,takeJob,quitJob,npcsAt,meet,tenYears,trustOf,MAPLOC,mapInfo,visit,miniSetup,finishMini,simMini,ORIGINS,CH,EV,ENDINGS,STAGES,LOC,BIZ,DIFF,WORLD,MODES,newState,view,choose,advance,stageOf,goalText,season,dateStr,endingText:endingText3,epilogue:epilogue2,isRoom,worth,memory,people};
 })();
 if(typeof module!=='undefined')module.exports=G;
