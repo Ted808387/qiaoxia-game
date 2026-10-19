@@ -310,7 +310,7 @@ const Scene=(()=>{
   for(const f of puffs){f.y-=(f.steam?22:10)*dt;f.x+=(f.steam?Math.sin(t/400+f.r)*.3:6*dt);f.r+=(f.steam?8:5)*dt;f.a-=(f.steam?.12:.18)*dt;ctx.fillStyle=`rgba(220,225,230,${Math.max(0,f.a).toFixed(3)})`;ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,7);ctx.fill()}
   puffs=puffs.filter(f=>f.a>0);
   splashes(t,dt);
-  if(wx==='storm'&&!RM&&Math.random()<dt*.22){lightning=1;window.__amb&&window.__amb.thunder()}
+  if(wx==='storm'&&!RM&&Math.random()<dt*.22)lightning=1
   if(lightning>0){ctx.fillStyle=`rgba(225,232,255,${(lightning*.42).toFixed(3)})`;ctx.fillRect(0,0,W,H);lightning=Math.max(0,lightning-dt*3.2)}
   const tint={冬:'rgba(70,100,150,.10)',夏:'rgba(200,120,40,.07)',春:'rgba(110,150,120,.05)',秋:'rgba(160,110,60,.05)'}[season];
   if(cur!=='hospital'&&tint){ctx.fillStyle=tint;ctx.fillRect(0,0,W,H)}
@@ -335,8 +335,7 @@ const Scene=(()=>{
 
 /* ───────── 環境音（全部即時合成，不載入任何音檔） ───────── */
 const Ambient=(()=>{
- let ac=null,master=null,verb=null,on=false,curKey='',active=null,NB={},want={id:'station',o:{}};
- const INDOOR=['room','hospital','office','underpass'];
+ let ac=null,master=null,verb=null,on=false,active=null,NB={};
  function nbuf(type){const len=ac.sampleRate*4,b=ac.createBuffer(1,len,ac.sampleRate),d=b.getChannelData(0);let l=0,b0=0,b1=0,b2=0;
   for(let i=0;i<len;i++){const w=Math.random()*2-1;if(type==='brown'){l=(l+.02*w)/1.02;d[i]=l*3.5}else if(type==='pink'){b0=.99765*b0+w*.099046;b1=.963*b1+w*.2965164;b2=.57*b2+w*1.0526913;d[i]=(b0+b1+b2+w*.1848)*.11}else d[i]=w}
   return b}
@@ -346,82 +345,32 @@ const Ambient=(()=>{
   verb=ac.createConvolver();const len=ac.sampleRate*2.6,ir=ac.createBuffer(2,len,ac.sampleRate);for(let c=0;c<2;c++){const d=ir.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6)}verb.buffer=ir;verb.connect(master);
   NB={white:nbuf('white'),pink:nbuf('pink'),brown:nbuf('brown')};
  }
- /* 一組場景 = 一個 bus；切換時淡出舊的 */
  function Scape(wet){const g=ac.createGain();g.gain.value=0;g.connect(master);const s=ac.createGain();s.gain.value=wet||0;g.connect(s);s.connect(verb);
-  const nodes=[],timers=[];let alive=true;
-  const api={out:g,alive:()=>alive,
-   keep(n){nodes.push(n);return n},
+  const timers=[];let alive=true;
+  const api={out:g,
    every(fn,min,max){const tick=()=>{if(!alive)return;fn();timers.push(setTimeout(tick,min+Math.random()*(max-min)))};timers.push(setTimeout(tick,Math.random()*max*.6))},
    fadeIn(v){g.gain.setTargetAtTime(v,ac.currentTime,.8)},
-   stop(){alive=false;timers.forEach(clearTimeout);g.gain.setTargetAtTime(0,ac.currentTime,.6);setTimeout(()=>{nodes.forEach(n=>{try{n.stop&&n.stop()}catch(e){}try{n.disconnect()}catch(e){}});try{g.disconnect();s.disconnect()}catch(e){}},2600)}};
+   stop(){alive=false;timers.forEach(clearTimeout);g.gain.setTargetAtTime(0,ac.currentTime,.6);setTimeout(()=>{try{g.disconnect();s.disconnect()}catch(e){}},2600)}};
   return api}
- function noise(sc,type,ft,freq,q,vol,dest){const s=sc.keep(ac.createBufferSource());s.buffer=NB[type];s.loop=true;const f=ac.createBiquadFilter();f.type=ft;f.frequency.value=freq;f.Q.value=q;const g=ac.createGain();g.gain.value=vol;s.connect(f);f.connect(g);g.connect(dest||sc.out);s.start(0,Math.random()*3);return {s,f,g}}
- function lfo(sc,param,rate,depth){const o=sc.keep(ac.createOscillator());o.frequency.value=rate;const g=ac.createGain();g.gain.value=depth;o.connect(g);g.connect(param);o.start();return o}
  function env(dest,t,a,peak,dec){const g=ac.createGain();g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(.0001,t+a+dec);g.connect(dest);return g}
  function tone(dest,freq,type,t,a,peak,dec){const o=ac.createOscillator();o.type=type;o.frequency.value=freq;const g=env(dest,t,a,peak,dec);o.connect(g);o.start(t);o.stop(t+a+dec+.05);return o}
  function burst(dest,type,ft,freq,q,t,a,peak,dec,sweep){const s=ac.createBufferSource();s.buffer=NB[type];const f=ac.createBiquadFilter();f.type=ft;f.frequency.value=freq;f.Q.value=q;if(sweep)f.frequency.exponentialRampToValueAtTime(sweep,t+a+dec);const g=env(dest,t,a,peak,dec);s.connect(f);f.connect(g);s.start(t,Math.random()*2);s.stop(t+a+dec+.1)}
- /* 素材 */
- const L={
-  rain(sc,k){const v={drizzle:.05,rain:.1,storm:.17}[k]||.08;noise(sc,'pink','bandpass',2600,.6,v);noise(sc,'brown','lowpass',400,.7,v*.6);
-   sc.every(()=>{const t=ac.currentTime;for(let i=0;i<3;i++)burst(sc.out,'white','highpass',3500+Math.random()*3000,1,t+Math.random()*.4,.001,.05*v*8,.03)},120,400)},
-  wind(sc,v){const n=noise(sc,'pink','bandpass',420,.8,v);lfo(sc,n.f.frequency,.07,220);lfo(sc,n.g.gain,.11,v*.7)},
-  traffic(sc,v){noise(sc,'brown','lowpass',260,.7,v);sc.every(()=>{const t=ac.currentTime,d=1.6+Math.random()*1.4;burst(sc.out,'pink','bandpass',300+Math.random()*300,1.2,t,d*.5,v*.9,d*.6,1400)},2500,7000)},
-  crowd(sc,v){for(let i=0;i<3;i++){const n=noise(sc,'pink','bandpass',350+i*420,1.6,v*.5);lfo(sc,n.g.gain,.4+Math.random()*.9,v*.35)}},
-  sizzle(sc,v){const n=noise(sc,'white','highpass',5200,.7,v*.35);lfo(sc,n.g.gain,3.3,v*.25);sc.every(()=>{const t=ac.currentTime;for(let i=0;i<8;i++)burst(sc.out,'white','highpass',6000,1,t+Math.random()*.8,.001,v*1.2,.015)},300,900)},
-  clank(sc,v){sc.every(()=>{const t=ac.currentTime;[523,1187,1931,2711].forEach((f,i)=>tone(sc.out,f*(.96+Math.random()*.08),'triangle',t,.002,v/(i+1),.5+Math.random()*.6))},3000,9000)},
-  thump(sc,v){sc.every(()=>{const t=ac.currentTime;const o=ac.createOscillator();o.frequency.setValueAtTime(110,t);o.frequency.exponentialRampToValueAtTime(38,t+.3);const g=env(sc.out,t,.005,v,.45);o.connect(g);o.start(t);o.stop(t+.6);burst(sc.out,'brown','lowpass',300,.7,t,.002,v*.6,.3)},1500,1700)},
-  chime(sc,v){sc.every(()=>{const t=ac.currentTime+.1;[659,523,587,392].forEach((f,i)=>{tone(sc.out,f,'sine',t+i*.55,.01,v,1.6);tone(sc.out,f*2,'sine',t+i*.55,.01,v*.2,1)})},22000,42000)},
-  mokugyo(sc,v){let i=0;sc.every(()=>{const t=ac.currentTime;tone(sc.out,720+(i++%4===0?60:0),'sine',t,.002,v,.12);burst(sc.out,'white','bandpass',1100,9,t,.001,v*.8,.05)},680,700)},
-  chant(sc,v){const notes=[110,110,123.5,110,98,110,110,92.5];let i=0;const mk=(base,vol)=>{const o=sc.keep(ac.createOscillator());o.type='sawtooth';o.frequency.value=base;const f1=ac.createBiquadFilter();f1.type='bandpass';f1.frequency.value=700;f1.Q.value=5;const f2=ac.createBiquadFilter();f2.type='bandpass';f2.frequency.value=1150;f2.Q.value=7;const g=ac.createGain();g.gain.value=0;o.connect(f1);o.connect(f2);f1.connect(g);f2.connect(g);g.connect(sc.out);o.start();return {o,g,f1}};
-   const A=mk(110,v),B=mk(55,v*.6);
-   sc.every(()=>{const t=ac.currentTime,n=notes[i++%notes.length];[A,B].forEach((V,k)=>{V.o.frequency.setTargetAtTime(n/(k?2:1),t,.05);V.g.gain.cancelScheduledValues(t);V.g.gain.setTargetAtTime(k?v*.5:v,t,.04);V.g.gain.setTargetAtTime(v*.15,t+.5,.12);V.f1.frequency.setTargetAtTime(i%2?620:760,t,.05)})},1360,1400)},
-  bell(sc,v){sc.every(()=>{const t=ac.currentTime;[523,1316,2093,2811].forEach((f,i)=>tone(sc.out,f,'sine',t,.003,v/(i*1.4+1),6-i))},18000,32000)},
-  crickets(sc,v){sc.every(()=>{const t=ac.currentTime,f=4000+Math.random()*900,n=3+Math.floor(Math.random()*4);for(let i=0;i<n;i++)tone(sc.out,f,'sine',t+i*.07,.005,v,.04)},400,1500)},
-  birds(sc,v){sc.every(()=>{const t=ac.currentTime;const o=ac.createOscillator();o.type='sine';const f0=2400+Math.random()*1500;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f0*1.5,t+.08);o.frequency.exponentialRampToValueAtTime(f0*.9,t+.16);const g=env(sc.out,t,.01,v,.18);o.connect(g);o.start(t);o.stop(t+.3)},1200,4000)},
-  waves(sc,v){const a=noise(sc,'brown','lowpass',500,.6,v*.5);lfo(sc,a.g.gain,.09,v*.45);const b=noise(sc,'white','bandpass',1800,.5,v*.12);lfo(sc,b.g.gain,.09,v*.11)},
-  lap(sc,v){const a=noise(sc,'brown','lowpass',700,.8,v*.4);lfo(sc,a.g.gain,.35,v*.3)},
-  gulls(sc,v){sc.every(()=>{const t=ac.currentTime;for(let k=0;k<2;k++){const o=ac.createOscillator();o.type='triangle';o.frequency.setValueAtTime(1500,t+k*.35);o.frequency.exponentialRampToValueAtTime(900,t+k*.35+.3);const g=env(sc.out,t+k*.35,.02,v,.3);o.connect(g);o.start(t+k*.35);o.stop(t+k*.35+.4)}},5000,12000)},
-  hum(sc,v){[120,240].forEach((f,i)=>{const o=sc.keep(ac.createOscillator());o.frequency.value=f;const g=ac.createGain();g.gain.value=v/(i+1);o.connect(g);g.connect(sc.out);o.start()})},
-  beep(sc,v){sc.every(()=>tone(sc.out,988,'sine',ac.currentTime,.005,v,.12),1150,1250)},
-  fridge(sc,v){[55,110].forEach((f,i)=>{const o=sc.keep(ac.createOscillator());o.frequency.value=f;const g=ac.createGain();g.gain.value=v/(i+1.5);o.connect(g);g.connect(sc.out);o.start()})},
-  erhu(sc,v){const o=sc.keep(ac.createOscillator());o.type='sawtooth';o.frequency.value=294;const vib=lfo(sc,o.frequency,5.4,5);const f=ac.createBiquadFilter();f.type='bandpass';f.frequency.value=1300;f.Q.value=1.2;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2600;const g=ac.createGain();g.gain.value=0;o.connect(f);f.connect(lp);lp.connect(g);g.connect(sc.out);o.start();
-   const phr=[[440,.9],[392,.5],[330,.5],[294,1.4],[0,.6],[330,.6],[392,.6],[440,.5],[494,.5],[440,1.6],[0,.8],[587,.8],[494,.5],[440,.6],[392,.5],[330,.9],[294,1.8],[0,1.4]];let i=0;
-   const play=()=>{if(!sc.alive())return;const [n,d]=phr[i++%phr.length];const t=ac.currentTime;if(n){o.frequency.setTargetAtTime(n,t,.06);g.gain.setTargetAtTime(v,t,.08);g.gain.setTargetAtTime(v*.55,t+d*.6,.15)}else g.gain.setTargetAtTime(0,t,.15);setTimeout(play,d*1000)};play()},
-  music(sc,v){const prog=[[220,277,330],[196,247,294],[175,220,262],[196,247,294]];let i=0;const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=900;lp.connect(sc.out);
-   sc.every(()=>{const ch=prog[Math.floor(i/8)%4],t=ac.currentTime;tone(lp,ch[i%3]*(i%8>3?2:1),'triangle',t,.01,v,.28);if(i%4===0)tone(lp,ch[0]/2,'sine',t,.01,v*1.3,.4);i++},250,252)},
-  steps(sc,v){sc.every(()=>{const t=ac.currentTime;for(let k=0;k<4;k++)burst(sc.out,'brown','bandpass',220,2,t+k*.48,.002,v,.08)},2500,6000)},
-  shout(sc){if(!('speechSynthesis' in window))return;const pick=()=>{try{return speechSynthesis.getVoices().find(x=>/zh[-_](TW|HK|CN)|Chinese/i.test(x.lang+x.name))}catch(e){return null}};
-   const W2=['來喔，來喔！','好吃喔！','三份一百！','剛滷好的喔！','現煮的喔，來坐！','最後五份！'];
-   sc.every(()=>{const vc=pick();if(!vc||!on)return;try{const u=new SpeechSynthesisUtterance(W2[Math.floor(Math.random()*W2.length)]);u.voice=vc;u.lang=vc.lang;u.volume=.35;u.rate=1.15;u.pitch=.8+Math.random()*.5;speechSynthesis.speak(u)}catch(e){}},7000,15000)}
- };
- const SCAPE={
-  station:[.35,sc=>{L.crowd(sc,.16);L.steps(sc,.2);L.chime(sc,.06)}],
-  bridge:[.05,sc=>{L.traffic(sc,.13);L.lap(sc,.05)}],
-  park:[.05,(sc,o)=>{L.wind(sc,.03);o.tod==='night'?(o.season!=='冬'&&L.crickets(sc,.02)):L.birds(sc,.03);L.crowd(sc,.02)}],
-  alley:[.15,sc=>{L.traffic(sc,.04);L.hum(sc,.006);L.crowd(sc,.025)}],
-  site:[.08,(sc,o)=>{L.traffic(sc,.05);if(o.tod!=='night'){L.thump(sc,.22);L.clank(sc,.05)}}],
-  market:[.12,sc=>{L.crowd(sc,.11);L.sizzle(sc,.06);L.clank(sc,.02);L.shout(sc)}],
-  yard:[.08,sc=>{L.traffic(sc,.05);L.clank(sc,.07)}],
-  temple:[.45,sc=>{L.chant(sc,.17);L.mokugyo(sc,.2);L.bell(sc,.06);L.crowd(sc,.04)}],
-  river:[.05,(sc,o)=>{L.lap(sc,.07);L.traffic(sc,.035);o.tod==='night'&&o.season!=='冬'&&L.crickets(sc,.015)}],
-  ximen:[.15,sc=>{L.crowd(sc,.1);L.music(sc,.03);L.traffic(sc,.03)}],
-  underpass:[.55,sc=>{L.erhu(sc,.08);L.hum(sc,.008);L.steps(sc,.09)}],
-  sea:[.05,sc=>{L.waves(sc,.16);L.wind(sc,.04);L.gulls(sc,.03)}],
-  office:[.2,sc=>{L.hum(sc,.008);L.crowd(sc,.05)}],
-  room:[.1,sc=>{L.fridge(sc,.02)}],
-  hospital:[.25,sc=>{L.hum(sc,.008);L.beep(sc,.03);L.crowd(sc,.04)}]
- };
- function weatherOf(id,o){if(INDOOR.includes(id))return id==='room'&&(o.weather||o.season==='冬'||o.season==='春')?'window':null;return o.weather||({冬:'rain',春:'drizzle'})[o.season]||null}
- function build(){const {id,o}=want;const w=weatherOf(id,o);const key=[id,o.tod,o.season,w].join('|');if(key===curKey&&active)return;curKey=key;
-  if(active)active.stop();const def=SCAPE[id]||SCAPE.bridge;const sc=Scape(def[0]);def[1](sc,o);
-  if(w==='window')L.rain(sc,'drizzle');else if(w)L.rain(sc,w);
-  if(o.season==='冬'&&!INDOOR.includes(id))L.wind(sc,.035);
-  sc.fadeIn(1);active=sc}
+ /* 背景音樂：慢的鋼琴分解和弦，整局同一首，不隨場景切換 */
+ const hz=m=>440*Math.pow(2,(m-69)/12);
+ function key(dest,m,t,v){const f=hz(m);[[1,1,3.2],[2,.32,2.2],[3,.12,1.4],[4,.05,.9]].forEach(([h,a,d],i)=>tone(dest,f*h*(1+(Math.random()-.5)*.0016),i?'sine':'triangle',t,.006,v*a,d*(m<48?1.4:1)))}
+ const BARS=[[41,[53,57,60,64]],[40,[52,55,59,62]],[38,[50,53,57,60]],[36,[48,52,55,59]],[45,[57,60,64,67]],[41,[53,57,60,64]],[43,[55,59,62,67]],[36,[48,52,55,60]]];
+ const ARP=[0,1,2,3,2,1,2,3],STEP=.55;
+ function piano(sc,v){const lp=ac.createBiquadFilter();lp.type='lowpass';lp.frequency.value=2400;lp.connect(sc.out);let n=0;
+  sc.every(()=>{const [bass,ch]=BARS[Math.floor(n/8)%BARS.length],k=n%8,t=ac.currentTime+.05;
+   if(k===0)key(lp,bass,t,v*.9);
+   if(!(k===7&&Math.random()<.5))key(lp,ch[ARP[k]],t,v*(k%4===0?.75:.55));
+   if((k===0||k===4)&&Math.random()<.3)key(lp,ch[Math.floor(Math.random()*4)]+12,t+STEP*.5,v*.45);
+   n++},STEP*1000,STEP*1000)}
+ function build(){if(active)return;const sc=Scape(.3);piano(sc,.03);sc.fadeIn(1);active=sc}
  return {
-  update(id,o){want={id,o:o||{}};if(on)build()},
-  toggle(){if(!ac){try{init()}catch(e){return false}}on=!on;if(on){ac.resume();curKey='';build()}else{if(active){active.stop();active=null}curKey='';try{speechSynthesis.cancel()}catch(e){}}return on},
+  update(){if(on)build()},
+  toggle(){if(!ac){try{init()}catch(e){return false}}on=!on;if(on){ac.resume();build()}else if(active){active.stop();active=null}return on},
   isOn:()=>on,
-  thunder(){if(!on||!ac)return;const t=ac.currentTime+.2+Math.random()*.8;burst(master,'brown','lowpass',140,.7,t,.05,.5,3.2);burst(master,'white','lowpass',900,.7,t,.005,.18,.6)},
   sfx(name){if(!on||!ac)return;const t=ac.currentTime;
    if(name==='ding'){tone(master,1320,'sine',t,.005,.12,.25);tone(master,1980,'sine',t+.06,.005,.08,.3)}
    else if(name==='buzz'){tone(master,140,'square',t,.005,.08,.35)}
