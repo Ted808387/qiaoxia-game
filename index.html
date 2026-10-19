@@ -3518,7 +3518,7 @@ const Scene=(()=>{
   ctx.restore()}
  function splashes(t,dt){const w=weather();if(!GY||!['rain','storm','drizzle'].includes(w)||RM)return;
   const rate={storm:70,rain:38,drizzle:14}[w]*(W/800);let n=rate*dt;while(n>0){if(Math.random()<n)splash.push({x:Math.random()*W,y:GY+3+Math.pow(Math.random(),1.4)*(H-GY-3),r:0,a:.5});n--}
-  for(const s of splash){s.r+=dt*(18+ (s.y-GY)*.2);s.a-=dt*1.6;const k=.4+(s.y-GY)/(H-GY);ctx.strokeStyle=`rgba(190,205,220,${Math.max(0,s.a*.6).toFixed(3)})`;ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(s.x,s.y,s.r*k,s.r*k*.28,0,0,7);ctx.stroke()}
+  for(const s of splash){s.r+=dt*(18+ (s.y-GY)*.2);s.a-=dt*1.6;const k=.4+(s.y-GY)/(H-GY);ctx.strokeStyle=`rgba(190,205,220,${Math.max(0,s.a*.6).toFixed(3)})`;ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(s.x,s.y,Math.max(0,s.r*k),Math.max(0,s.r*k*.28),0,0,7);ctx.stroke()}
   splash=splash.filter(s=>s.a>0)}
  function post(t,DP){const cw=cv.width,ch=cv.height;
   /* 光暈：縮小兩次再放大，用 screen 疊回去 */
@@ -3533,7 +3533,8 @@ const Scene=(()=>{
   ctx.translate(cw/2+ox,ch/2+oy);ctx.scale(z,z);ctx.drawImage(CB,-cw/2,-ch/2)}
   ctx.restore();ctx.setTransform(DP,0,0,DP,0,0)}
  function frame(now){
-  const dt=Math.min(.05,(now-last)/1000);last=now;const t=now;
+  if(!document.hidden)requestAnimationFrame(frame);
+  const dt=Math.max(0,Math.min(.05,(now-last)/1000));last=now;const t=now;
   const p=PAL[cur]||PAL.bridge;GY=null;
   (D[cur]||D.bridge)(t,p,dt);
   drawExtras(t,p);
@@ -3558,7 +3559,6 @@ const Scene=(()=>{
   if(prev&&fade<1){fade=Math.min(1,fade+dt/.9);ctx.save();ctx.globalAlpha=1-fade;ctx.setTransform(1,0,0,1,0,0);ctx.drawImage(prev,0,0);ctx.restore();const Dp=cv.width/W;ctx.setTransform(Dp,0,0,Dp,0,0)}
   if(flash>0){flash=Math.max(0,flash-dt*1.6);ctx.fillStyle=`rgba(170,30,20,${(flash*.35).toFixed(3)})`;ctx.fillRect(0,0,W,H)}
   if(FX.on){FX.acc+=dt;FX.n++;if(FX.n>=90){if(FX.acc/FX.n>.028)FX.slow++;else FX.slow=Math.max(0,FX.slow-1);if(FX.slow>=3)FX.on=false;FX.acc=0;FX.n=0}}
-  if(!document.hidden)requestAnimationFrame(frame);
  }
  document.addEventListener('visibilitychange',()=>{if(!document.hidden){last=performance.now();requestAnimationFrame(frame)}});
  new ResizeObserver(resize).observe(cv);
