@@ -2,7 +2,7 @@ const G=require(process.env.LG||'./logic.js');
 const ORS=Object.keys(G.ORIGINS),DF=Object.keys(G.DIFF),MD=Object.keys(G.MODES),EN=Object.keys(G.ENDINGS);
 let err=0;const ach={};let tpc=0;const cnt={},seen=new Set();let meets=0,jobs=0;
 const pol=process.argv[2]||'rand';
-for(let r=0;r<6000;r++){const o=ORS[r%5],d=pol==='gang'?'street':DF[r%3];const S=G.newState(o,d,{legacy:r%4?null:{origin:'debt',oname:'x',ending:EN[r%EN.length],day:300}});G.applyCard(S,G.drawCards()[0]);let n=0;
+for(let r=0;r<6000;r++){const o=ORS[r%ORS.length],d=pol==='gang'?'street':DF[r%3];const S=G.newState(o,d,{legacy:r%4?null:{origin:'debt',oname:'x',ending:EN[r%EN.length],day:300}});G.applyCard(S,G.drawCards()[0]);let n=0;
  try{while(n<400){const a=G.advance(S);
   if(a.type==='end'){cnt[a.key]=(cnt[a.key]||0)+1;const t=G.endingText(S,a.key);if(!t||/undefined/.test(t))throw 'endtext '+a.key;G.epilogue(S);G.people(S);const ty=G.tenYears(S,a.key);if(G.achCheck){const ac=G.achCheck(S,a.key,{got:[],origins:[]});ac.forEach(x=>ach[x]=(ach[x]||0)+1);const tp=G.turning(S);tpc+=tp.length;G.items(S)}if(ty.some(x=>!x||/undefined/.test(x)))throw 'ten '+a.key;break}
   if(G.items&&Math.random()<.15){const it=G.items(S);const p=it.find(x=>x.status==='have'&&!x.fixed);if(p&&S.money<500)G.pawnItem(S,p.id);const q=it.find(x=>x.status==='pawned');if(q&&S.money>q.cost+3000)G.redeemItem(S,q.id);if(Math.random()<.01)G.sellID(S)}

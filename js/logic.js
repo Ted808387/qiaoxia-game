@@ -2,6 +2,7 @@
 
 const G=(()=>{
 const o=(S,m)=>m[S.origin]??'';
+const bg=(S,k,m)=>S.bg?m[S.bg[k]]??'':'';
 const F=(S,k)=>!!S.f[k];
 const isRoom=S=>!!S.house&&S.house.indexOf('room')===0;
 const bz=(S,m)=>m[S.biz?S.biz.type:'cart']??'';
@@ -241,7 +242,7 @@ c4_start:{scene:'bridge',title:'熱浪',
   {t:'接熱浪的加班，日薪多五百',show:S=>!!S.job,req:{hp:45},r:S=>({t:'大家都不想在這種天氣做，所以錢多。第三天你中暑，在工地的貨櫃屋裡吐了兩次。',money:Math.round(S.job.income*5),hp:-10})}
  ]},
 c4_reporter:{scene:'station',title:'專題',
- text:S=>`一個背相機的年輕記者在社福中心等你。她在做一個「街友翻身」的專題，有人跟她提起你。\n\n「你的故事很好，」她說，「我想用你的真名和照片。這種報導刊出來，會有人想幫你，也許有老闆會想用你。」\n\n${o(S,{excon:'你想起你的前科。網路會找到所有東西。',debt:'你想起那些在找你的人。',injury:'你想起你兒子可能會看到。',family:'你想起你爸每天都看報紙。'})}`,
+ text:S=>`一個背相機的年輕記者在社福中心等你。她在做一個「街友翻身」的專題，有人跟她提起你。\n\n「你的故事很好，」她說，「我想用你的真名和照片。這種報導刊出來，會有人想幫你，也許有老闆會想用你。」\n\n${o(S,{excon:'你想起你的前科。網路會找到所有東西。',debt:'你想起那些在找你的人。',injury:'你想起你兒子可能會看到。',family:'你想起你爸每天都看報紙。',drifter:bg(S,'family',{alone:'你想起沒有人會看到。這件事你自己也說不準，是鬆了一口氣，還是更空。',kid:'你想起你的小孩，同學可能會拿給他看。',mom:'你想起鄉下的媽媽。鄰居都訂同一份報紙。',sibling:'你想起你的兄弟姊妹，他們一翻開就會知道你在哪裡。'})})}`,
  ch:[
   {t:'用真名和照片',r:{t:'你在橋墩下拍了照，她叫你「看遠一點」。',rep:12,mind:2,set:{reporter:'named'},log:'用真名接受記者採訪'}},
   {t:'匿名，不拍臉',r:{t:'報導刊出來的時候，你是「A先生」。她給了你一千塊車馬費。沒有人知道那是你，包括可能想幫你的人。',rep:3,money:1000,set:{reporter:'anon'}}},
@@ -1061,7 +1062,7 @@ setv('c3_huei2','timer',S=>S.f.huei==='lost');panicOn('c3_huei2','走開');
 {const t0=EV.c6_start.text;EV.c6_start.text=S=>S.origin==='teacher'?'刑事局打電話到社福中心找你。\n\n騙走你退休金的那個集團，主嫌在台中被抓了，帳戶裡還有一些錢沒被領走。如果你出庭作證，有機會發還一部分。\n\n但對方的律師會在法庭上，當著所有人的面問你：一個老師，怎麼會這麼笨。':t0(S);
  const ch=EV.c6_start.ch;ch.pop();
  ch.push({t:'去台中出庭作證',show:S=>S.origin==='teacher',r:(S,R)=>R()<.6?{t:'你出庭了三次。對方律師問你：「一個國文老師，怎麼會相信這種電話？」你說：「因為我教了三十五年，要學生相信白紙黑字。」\n\n法院發還了你被騙的一部分錢：十八萬。',money:180000,days:6,noIncome:1,mind:6,log:'出庭作證，拿回一部分被騙的錢'}:{t:'你出庭了三次。主嫌的帳戶早就被掏空了，被害人太多，能發還的很少。你拿到三千兩百塊，和一句「節哀」。',money:3200,days:6,noIncome:1,mind:-8}});
- ch.push({t:'這件事，你不管',r:S=>({t:o(S,{family:'你沒有回去，也沒有寄錢。三個月後，你媽寄來一張照片，你爸坐在輪椅上，背面沒有字。',injury:'你說你沒錢。前妻掛掉電話。兒子從此不再寫信。',debt:'你換了手機，搬了家。你知道他們還會再找到你。',excon:'你關上門。隔著門，他說：「我在裡面幫過你。」然後腳步聲走遠了。',teacher:'你沒有去。你不想再聽一次那個問題：為什麼你會相信。'}),mind:-10,con:-6})});
+ ch.push({t:'這件事，你不管',r:S=>({t:o(S,{family:'你沒有回去，也沒有寄錢。三個月後，你媽寄來一張照片，你爸坐在輪椅上，背面沒有字。',injury:'你說你沒錢。前妻掛掉電話。兒子從此不再寫信。',debt:'你換了手機，搬了家。你知道他們還會再找到你。',excon:'你關上門。隔著門，他說：「我在裡面幫過你。」然後腳步聲走遠了。',teacher:'你沒有去。你不想再聽一次那個問題：為什麼你會相信。',drifter:'你把電話放下，沒有再撥回去。有些事，不看也會一直在那裡。'}),mind:-10,con:-6})});
 }
 
 /* ── 出身主線事件 ── */
@@ -1318,7 +1319,7 @@ f_bedbug:{scene:'room',tod:'night',title:'床蝨',
   {t:'忍著',r:{t:'你每天晚上都抓到流血。白天上工的時候，手一直在抖。',hp:-5,mind:-7}}
  ]},
 f_oldfriend:{scene:'ximen',tod:'dusk',title:'認出你的人',
- text:S=>`捷運車廂裡，一個人一直看你。他越過人群走過來：「你是不是……？」\n\n${o(S,{debt:'他是早餐店的老客人，每天點一份蘿蔔糕加蛋，不要醬油膏。',excon:'他是你國中同學，以前坐你後面，現在在做保險。',injury:'他是你以前工班的同事阿忠，現在自己接案。',family:'他是你高中樂團的鼓手，現在在銀行上班。',teacher:'他是你以前的學生。他叫你：「老師？」'})}`,
+ text:S=>`捷運車廂裡，一個人一直看你。他越過人群走過來：「你是不是……？」\n\n${o(S,{debt:'他是早餐店的老客人，每天點一份蘿蔔糕加蛋，不要醬油膏。',excon:'他是你國中同學，以前坐你後面，現在在做保險。',injury:'他是你以前工班的同事阿忠，現在自己接案。',family:'他是你高中樂團的鼓手，現在在銀行上班。',teacher:'他是你以前的學生。他叫你：「老師？」',drifter:bg(S,'job',{taxi:'他是你以前常載的客人，每個禮拜三去榮總回診。',chef:'他是你辦過桌的人家的兒子，婚宴上跟你敬過酒。',guard:'他是你以前顧的那棟大樓的住戶，每天進出都跟你點頭。',sales:'他是你以前的客戶，買過你兩張保單。'})})}`,
  ch:[
   {t:'跟他打招呼',r:(S,R)=>R()<.55?{t:'他請你喝了一杯咖啡，聽你講完，沉默了很久。他給你一千塊和他的電話：「有工作我叫你。」',money:1000,rep:5,mind:3}:{t:'他聽了兩句，眼神就變了。他說他到站了，其實還有三站。',mind:-5}},
   {t:'說他認錯人了',r:{t:'他說了聲抱歉，回到原來的位置。他一直到下車都沒再看你。',mind:-3}},
@@ -1880,7 +1881,8 @@ function meet(S,id,act){const n=NPCS[id];const info=npcsAt(S,n.loc).find(x=>x.id
 
 /* ── 十年後 ── */
 const AGE={debt:42,excon:35,injury:48,family:23,teacher:66};
-function tenYears(S,key){const A=AGE[S.origin]+12,f=k=>F(S,k),out=[];const T=k=>S.rel&&S.rel[k]!=null?S.rel[k]:null;
+const ageOf=S=>S.origin==='drifter'?S.bg.age:AGE[S.origin];
+function tenYears(S,key){const A=ageOf(S)+12,f=k=>F(S,k),out=[];const T=k=>S.rel&&S.rel[k]!=null?S.rel[k]:null;
  const Y={
   tycoon:`你 ${A} 歲了。公司有兩百多個員工，你已經記不住每個人的名字。每年寒流來的那個晚上，你會一個人開車到環河南路，坐在車裡看橋下，坐到天亮。`,
   tycoon_dark:`你 ${A} 歲了。勞檢開了你第十七張罰單，你付錢像付電費。醫生叫你戒酒，你說等明年。你已經說了五年。`,
@@ -2188,7 +2190,7 @@ Object.assign(EXT_END,{
  lost_sea:S=>'船在第七個月失去了聯絡。最後的定位，在南太平洋的一片海域。\n\n漁業署發了一份新聞稿，船員名單上有你的名字，旁邊寫著「本國籍」。\n\n林姐在報紙上看到，把那一頁剪下來，夾在你的個案資料裡。資料的最後一頁，還寫著你第一次來中心時說的話：「我不需要人可憐。」'
 });
 Object.assign(ENDGROUP,{diploma:'stable',lost_sea:'death'});
-{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=AGE[S.origin]+12;
+{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=ageOf(S)+12;
  const Y={voice:`你 ${A} 歲了。你寫了一本書，書名叫《紅紙》。版稅全部捐給了社福中心。`,diploma:`你 ${A} 歲了。你是大樓的水電主任，手下有三個人。其中一個，是你從進修部帶出來的學弟。`,south:`你 ${A} 歲了。你在屏東娶了一個在工廠認識的女人，養了兩隻狗。你偶爾會想起台北，但很少想起橋下。`,sea:`你 ${A} 歲了。你又跑了兩趟船，然後在前鎮漁港開了一間修漁網的小店。每次有新的年輕船員來，你都會跟他們說：在海上，要讓人知道你在哪裡。`,lost_sea:`十年過去了。那艘船一直沒有找到。`};
  if(Y[key])out[0]=Y[key];
  if(F(S,'zhengHome'))out.push('老鄭在高雄跟女兒住了五年，走的時候很安詳。他女兒寫信給你，說他最後幾年常常提到「台北那個少年」。');
@@ -2232,7 +2234,7 @@ pol_canvass:{scene:'market',tod:'dusk',skip:S=>!F(S,'polRan')||F(S,'polDone'),ti
   {t:'花錢買宣傳車和看板',req:{money:40000},r:{t:'宣傳車每天繞萬華三圈，喇叭裡播著你的名字。有人說很吵，也有人記住了。',money:-40000,vote:8}}
  ]},
 pol_smear:{scene:'station',tod:'night',skip:S=>!F(S,'polRan')||F(S,'polDone'),title:'黑函',
- text:S=>`選前一個月，萬華的信箱裡出現了一份黑函。標題是：「${({debt:'欠債跑路的人，能替你管錢嗎？',excon:'他坐過六年牢，你知道為什麼嗎？',injury:'酒鬼、遊民、拋家棄子',family:'連自己的家都待不住的人',teacher:'連詐騙都看不出來，怎麼替你看預算？'})[S.origin]}」\n\n${F(S,'gray')?'裡面還有你在華西街茶室門口的照片。':''}${F(S,'mule')?'裡面還附了一張你的存摺影本，和一份詐騙案的起訴書。':''}\n\n記者打電話來，要你回應。${poll(S)}`,
+ text:S=>`選前一個月，萬華的信箱裡出現了一份黑函。標題是：「${({drifter:'睡過橋下的人，能替你管錢嗎？',debt:'欠債跑路的人，能替你管錢嗎？',excon:'他坐過六年牢，你知道為什麼嗎？',injury:'酒鬼、遊民、拋家棄子',family:'連自己的家都待不住的人',teacher:'連詐騙都看不出來，怎麼替你看預算？'})[S.origin]}」\n\n${F(S,'gray')?'裡面還有你在華西街茶室門口的照片。':''}${F(S,'mule')?'裡面還附了一張你的存摺影本，和一份詐騙案的起訴書。':''}\n\n記者打電話來，要你回應。${poll(S)}`,
  ch:[
   {t:'開記者會，全部坦白',req:{con:45},r:S=>({t:`你站在橋下開記者會，把黑函上的每一件事都講了一遍，包括黑函沒寫到的。\n\n${S.con>=60?'第二天的報紙標題是：「他沒有否認任何一件事」。':'有人說你很勇敢，也有人說你在作秀。'}`,vote:S.con>=60?9:3,rep:5,mind:-3})},
   {t:'否認，說是抹黑',r:(S,R)=>R()<.5?{t:'風波過了一個禮拜就沒人提了。萬華的人很忙，沒空記得太久。',vote:1}:{t:'第二週，記者找到了你的舊資料。標題變成：「說謊的候選人」。',vote:-12,mind:-6}},
@@ -2278,7 +2280,7 @@ Object.assign(EXT_END,{
  lost_election:S=>`你輸了。競選總部的鐵皮屋拆掉那天，你一個人把看板一片一片拔下來。\n\n欠的錢，你花了很久才還完。但你走過的那些巷子，到現在還有人叫你的名字。賣菜的阿嬸會多給你一把蔥；橋下的人看到你，會說：「候選人，來坐。」\n\n下一屆選舉，有人問你還要不要出來。你說，再說吧。`,
  indicted:S=>`當選後的第三個月，檢調帶著搜索票進了你的服務處。樁腳的名單上，每一個數字旁邊，都有你的名字。\n\n法院判你當選無效，加上三年六個月。\n\n你被帶走的那天，記者擠滿了服務處門口。你看到人群後面，有一個你在橋下認識的人。他沒有擠進來，只是遠遠地看著，然後轉身走了。`
 });
-{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=AGE[S.origin]+12;
+{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=ageOf(S)+12;
  const Y={councilor:`你 ${A} 歲了。你連任了兩屆。第三屆，你沒有再選，把位子讓給了一個你在社福中心認識的年輕社工。`,blackgold:`你 ${A} 歲了。你是議會裡最資深的議員之一。你已經想不起來，你第一次睡在台北車站時，身上剩多少錢。`,lizhang:`你 ${A} 歲了，連任了三屆里長。里辦公處門口的藤椅換過一次，你坐壞的。`,lost_election:`你 ${A} 歲了。你沒有再選。但每次選舉，都有候選人來找你，說想「請教萬華的事」。`,indicted:`你 ${A} 歲了。出獄後，你在一間便當店洗碗。老闆不知道你以前是誰，也不想知道。`};
  if(Y[key])out[0]=Y[key];return out}}
 
@@ -2485,7 +2487,7 @@ const ACH=[
  {id:'poor',name:'兩袖清風',desc:'良知 80 以上，存款不到一千，還是走到三級以上的結局。',test:(S,k)=>S.con>=80&&S.money<1000&&ENDINGS[k].tier>=3},
  {id:'dog',name:'黑輪',desc:'結局時，身邊還有一隻狗。',test:S=>F(S,'dog')},
  {id:'nonet',name:'沒有第二次',desc:'不靠任何一次安全網，走到二級以上的結局。',test:(S,k)=>ENDINGS[k].tier>=2&&!S.seen.includes('net_hp')&&!S.seen.includes('net_mind')},
- {id:'lives',name:'五種人生',desc:'用每一種出身，各走完一輪。',test:(S,k,m)=>Object.keys(ORIGINS).every(o=>(m.origins||[]).includes(o))},
+ {id:'lives',name:'五種人生',desc:'用每一種出身，各走完一輪。',test:(S,k,m)=>Object.keys(ORIGINS).filter(o=>o!=='drifter').every(o=>(m.origins||[]).includes(o))},
  {id:'col10',name:'十種結局',desc:'解鎖十個不同的結局。',test:(S,k,m)=>(m.got||[]).length>=10},
  {id:'col25',name:'二十五種結局',desc:'解鎖二十五個不同的結局。',test:(S,k,m)=>(m.got||[]).length>=25},
  {id:'colall',name:'萬華的每一條路',desc:'解鎖所有結局。',test:(S,k,m)=>Object.keys(ENDINGS).every(x=>(m.got||[]).includes(x))}
@@ -2843,7 +2845,7 @@ pol_party:{scene:S=>council(S)?'office':'alley',tod:'night',skip:S=>!inOffice(S)
  ]}
 });
 ins(6,'pol_term','pol_aide');ins(6,'b6_betray','pol_service');ins(6,'c6_zheng','pol_party');
-{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=AGE[S.origin]+12,f=k=>F(S,k);let y=null;
+{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=ageOf(S)+12,f=k=>F(S,k);let y=null;
  if(key==='councilor'){
   if(f('polParty'))y=`你 ${A} 歲了。黨把你推出來選立委。萬華的競選總部，開在你以前睡過的那座橋旁邊，海報上的你穿著西裝。${f('polStreet')?'你選上了。就職那天，你把那張寫著「不收街友」的舊紅紙，帶進了立法院。':'你落選了，差了一萬多票。開票那晚，你一個人走回橋下，那裡已經沒有人了。'}`;
   else if(f('polIndep'))y=`你 ${A} 歲了。你以無黨籍連任了兩屆。第三屆，你沒有再選，把位子讓給了一個你在社福中心認識的年輕社工。${f('polStreet')?'交接那天，那個不識字的阿伯也來了，坐在最後一排。':''}`;
@@ -2915,14 +2917,167 @@ Object.assign(ENDGROUP,{assoc:'peer',assoc_dark:'dark',union:'stable',union_dark
   else if(F(S,'unionChair')){if(F(S,'unionDirty')&&S.rep>=45)k='union_dark';else if(!F(S,'unionDirty')&&S.con>=60&&S.rep>=55)k='union'}
   if(k){S.end=k;return k}}
  return R0(S,R)}}
-{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=AGE[S.origin]+12;
+{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=ageOf(S)+12;
  const Y={assoc:`你 ${A} 歲了。協會有三十幾個員工，一半以上睡過橋下。你把理事長的位子交出去那天，新的理事長是你第一年接的個案。`,
   assoc_dark:`你 ${A} 歲了。協會的帳，在你卸任前一年被監察院調查。你在記者會上說「所有支出都有憑證」。這句話是真的。`,
   union:`你 ${A} 歲了。工會那張白紙換過六張，劃掉的名字比沒劃掉的多。立法院修職災保險法那年，請你去公聽會作證。`,
   union_dark:`你 ${A} 歲了。你從工會退下來，資方給你一個顧問的頭銜。每年工安週，你都會收到一張邀請卡，你從來沒去過。`};
  if(Y[key]){if(out.length)out[0]=Y[key];else out.push(Y[key])}return out}}
 
-return {items,pawnItem,redeemItem,sellID,achCheck,ACH,HINT,turning,invOf,jobInfo,takeNotices,CARDS,drawCards,applyCard,JOBS,NPCS,jobsAt,takeJob,quitJob,npcsAt,meet,tenYears,trustOf,MAPLOC,mapInfo,visit,miniSetup,finishMini,simMini,ORIGINS,CH,EV,ENDINGS,STAGES,LOC,BIZ,DIFF,WORLD,MODES,newState,view,choose,advance,stageOf,goalText,season,dateStr,endingText:endingText3,epilogue:epilogue2,isRoom,worth,memory,people,quitGig,canQuitGig};
+/* ═════════ 第六種出身「隨機」：四組要素各抽一個，組出這一局的人 ═════════ */
+ORIGINS.drifter={name:'隨機',who:'每一局都不一樣',desc:'你不想提以前的事。反正提了，也沒有人在聽。',st:{hp:55,mind:40,con:55,rep:15,addict:10,money:100},trait:'職業、遭遇、年紀、家人各抽一個，起始數值和後面遇到的事，都跟著抽到的背景走。'};
+const BG={
+ job:{taxi:'計程車司機',chef:'辦桌總舖師',guard:'保全',sales:'業務員'},
+ cause:{guarantor:'替人作保被拖垮',gamble:'賭輸了一切',ill:'一場大病',divorce:'離婚，房子給了對方'},
+ age:{26:'二十六歲',41:'四十一歲',54:'五十四歲',65:'六十五歲'},
+ family:{alone:'孤家寡人',kid:'有個小孩在讀書',mom:'年邁的媽媽在鄉下',sibling:'兄弟姊妹還有聯絡'}
+};
+const BGADJ={taxi:{mind:5,hp:-5},chef:{rep:5,hp:-5},guard:{hp:10,mind:-10},sales:{rep:10,con:-10},guarantor:{con:10,mind:-10},gamble:{mind:-5,con:5,addict:20},ill:{hp:-15,con:10,rep:5},divorce:{mind:-10,rep:10},26:{hp:10,rep:-10},41:{},54:{hp:-5,con:5},65:{hp:-10,con:10}};
+function rollBg(S,R){
+ const pick=a=>a[Math.floor(R()*a.length)];
+ const b=S.bg={job:pick(Object.keys(BG.job)),cause:pick(Object.keys(BG.cause)),age:pick([26,41,54,65]),family:pick(Object.keys(BG.family))};
+ if(b.age===65&&b.family==='kid')b.family=pick(['alone','mom','sibling']);
+ for(const k of [b.job,b.cause,b.age]){const a=BGADJ[k];for(const x in a)S[x]+=a[x]}
+ for(const k of ['hp','mind','con','rep'])S[k]=Math.max(5,Math.min(95,S[k]));
+ S.con+=165-S.hp-S.mind-S.con-S.rep;
+ if(b.job==='sales')S.money+=80;if(b.job==='chef'){S.money+=40;S.f.cookSkill=1}
+ if(b.cause==='gamble')S.money=20;
+}
+{const N0=newState;newState=function(origin,diff,opts){const S=N0(origin,diff,opts);if(origin==='drifter')rollBg(S,(opts&&opts.R)||Math.random);return S}}
+const originLabel=S=>S.origin==='drifter'?`前${BG.job[S.bg.job]} · ${BG.cause[S.bg.cause]} · ${BG.age[S.bg.age]} · ${BG.family[S.bg.family]}`:ORIGINS[S.origin].name;
+const bgIntro=S=>`你今年${BG.age[S.bg.age]}。${bg(S,'job',{taxi:(S.bg.age<30?'你開了幾年的計程車，':'你開了十幾年的計程車，')+'座椅磨出的凹痕，還記得你的形狀。',chef:(S.bg.age<30?'你跟著師傅跑了幾年的桌，':'你辦過二十年的桌，')+'一百個人的菜，要幾點下鍋，你閉著眼睛都知道。',guard:(S.bg.age<30?'你站過幾年的崗，':'你站過十幾年的崗，')+'習慣一直站著，也習慣沒有人看你。',sales:'你賣過保單，也賣過淨水器，最會的是先笑，再講話。'})}${bg(S,'cause',{guarantor:'那年你在朋友的借據上簽了名，他人不見了，剩下你。',gamble:'賭是慢慢輸的，輸到最後，連輸的力氣都沒了。',ill:'一場病把工作和存款都帶走了，醫院的帳單比病還重。',divorce:'離婚那天，房子給了對方，你只拿走一個行李袋。'})}${bg(S,'family',{alone:'這個城市裡，沒有人會問你今天睡哪裡。',kid:'你有個小孩還在讀書，你已經三個月沒敢接他的電話。',mom:'鄉下的媽媽年紀大了，你每次說「在台北都好」，她都假裝相信。',sibling:'兄弟姊妹還有聯絡，只是你不敢讓他們知道你在哪裡。'})}`;
+{const t0=EV.c1_start.text;EV.c1_start.text=S=>S.origin==='drifter'?`晚上十一點，台北車站大廳的廣播播完最後一班區間車。保全開始一排一排地把坐在地上的人叫起來。\n\n${bgIntro(S)}\n\n你身上剩 ${S.money} 元。外面在起風。`:t0(S);}
+{const r0=EV.c2_newyear.ch[0].r;EV.c2_newyear.ch[0].r=(S,R)=>S.origin==='drifter'?{t:bg(S,'family',{alone:'你撥了一個還背得出來的號碼，響到自動斷線。你不知道，是想有人接，還是想沒有。',kid:'你撥了你小孩的號碼，在第一聲響之前掛掉。銅板掉回退幣口，聲音很大。',mom:'媽媽接起來，說：「是你嗎？吃飽沒？」你說吃飽了。她說她煮了蘿蔔糕，你以前最愛吃。你說晚點回去。你們都知道是哪一種晚點。',sibling:'你哥接起來，聊了兩分鐘天氣。他沒問你在哪裡，掛電話前說：「新年快樂。」你站在電話亭裡很久。'}),mind:S.bg.family==='alone'||S.bg.family==='kid'?-3:3}:r0(S,R);}
+{const t0=EV.c6_start.text;EV.c6_start.text=S=>S.origin==='drifter'?bg(S,'family',{alone:'社福中心的林姐打電話來。年度報告要放一段「受助者的話」，她問你願不願意講。\n\n「不用講太多，」她說，「講你自己就好。」你發現，已經很久沒有人問你這件事了。',kid:'導師打到社福中心。小孩要升學了，報名和補習費一共一萬五。孩子沒有開口，是導師替他問的。',mom:'鄰居打來，說你媽的藥要續了，她捨不得吃，一顆剪成兩半。電話那頭，你聽到她在旁邊小聲說：「不要講。」',sibling:'你姊傳訊息來，說今年過年大家都會回去，餐桌上會留一個位子給你。她沒有問你會不會來。'}):t0(S);
+ const ch=EV.c6_start.ch;const last=ch.pop();
+ ch.push({t:S=>bg(S,'family',{alone:'答應，講一段',kid:'湊一萬五匯給他',mom:'寄錢，叫鄰居去領藥',sibling:'搭夜車回去吃那頓飯'}),show:S=>S.origin==='drifter',req:S=>({kid:{money:15000},mom:{money:8000},sibling:{money:3000}})[S.bg.family]||{},
+  r:S=>({alone:{t:'你在電話裡講了十分鐘，講到一半，聲音啞了。林姐沒有打斷你。\n\n報告印出來，沒有寫你的名字，但你翻到那一頁，就知道那是你。',mind:8,rep:4,con:2},kid:{t:'你把錢匯過去。三天後，一封簡訊：「爸，我有考上。」只有這五個字，你在原地讀了很多遍。',money:-15000,mind:8,con:4},mom:{t:'你寄了錢。電話裡媽媽說：「不要寄這麼多，我吃不了。」你說好，然後把剩下的零錢捏在手心。',money:-8000,mind:6,con:4},sibling:{t:'你搭夜車回去，天亮前又搭車回來。餐桌上多了一副碗筷，你坐了三十分鐘，吃了一碗飯。沒有人問你什麼，這比什麼都好。',money:-3000,days:2,mind:8,con:3}}[S.bg.family])});
+ ch.push(last);}
+GRAY.push('跑夜班白牌車');SIDE.bg_taxi=[GRAY[3],'gig'];
+const bgIs=(S,k,v)=>S.origin==='drifter'&&S.bg[k]===v;
+Object.assign(EV,{
+bg_taxi:{scene:'alley',tod:'night',title:'白牌',
+ text:()=>`以前車行的老闆在西昌街認出你的背影，喊了你的綽號。\n\n他說他有幾台白牌車，沒掛靠，沒保險，專跑半夜的酒客和機場。「你的路最熟，」他說，「一晚抽兩成給我，剩下都是你的。」\n\n你上一次握方向盤，是車被收回去那天。`,
+ ch:[
+  {t:'接，開夜班',r:{t:'第一個晚上你載了七趟。凌晨四點，一個客人吐在後座，你擦了二十分鐘，沒人賠。\n\n錢是真的，方向盤的感覺也是。你不去想萬一被臨檢。',addInc:350,heat:1,con:-4,hp:-2,log:'開始跑夜班白牌車'}},
+  {t:'只跑白天的熟客，半夜不碰',r:{t:'老闆說你膽子小了。你說你只是記得，上次是怎麼被收車的。白天的客人不多，但至少看得到後照鏡裡的臉。',addInc:200,heat:.5,con:-2,log:'開始跑白天的白牌車'}},
+  {t:'不要',r:{t:'老闆說隨時缺人。你說你怕握了方向盤，就不想放了。',con:1,mind:-1}}
+ ]},
+bg_chef:{scene:'temple',tod:'dusk',title:'普渡',
+ text:()=>`龍山寺旁邊一間宮廟的總幹事找上你。七月普渡要辦三十桌，原本的總舖師臨時被大戶請走了，找不到人。\n\n「聽說你以前辦過兩百桌。」他說，「一桌三千，預算就這樣。」\n\n你算了一下，用好的料，做完賺不到兩千。冷凍倉那邊有個人說，他有一批快到期的海鮮和肉，半價。`,
+ ch:[
+  {t:'用便宜的過期料，多賺一點',r:(S,R)=>R()<.65?{t:'三十桌，沒有人說不好吃。你把香料下重一點，什麼味道都蓋得過去。\n\n你數錢的時候，沒有看那些剩菜。',money:6000,con:-8}:{t:'第二天，十幾個人拉肚子。總幹事沒說什麼，只是不再跟你講話。你的名字在廟口傳了一輪。',money:2000,con:-8,rep:-8,mind:-6,heat:1}},
+  {t:'用好料，賺少一點',r:{t:'三十桌，沒有人剩菜。一個老太太把紅包塞到你手裡，你推不掉。\n\n你的手，還記得怎麼控制火候。',money:1500,con:4,rep:4,mind:3}},
+  {t:'不接，說你很久沒碰鍋子了',r:{t:'你站在廟口看他們架爐子。其中一個瓦斯桶放的位置不對，你一眼就看出來，但你什麼都沒說。',mind:-3}}
+ ]},
+bg_guard:{scene:'site',title:'大門',
+ text:()=>`以前保全公司的組長打電話來。有間建商的工地缺人顧大門，日夜輪班，不用體檢。\n\n他沒提的是，那塊地正在拆一整排老房子，對面的住戶每天在門口拉白布條。昨天有人把雞蛋丟在警衛亭上。\n\n「你只要站著就好，」他說，「你最會站了。」`,
+ ch:[
+  {t:'接，站大門',r:{t:'第一天，一個阿嬤站在你面前，一句話都沒說，看了你一個小時。換班的時候你的腿在抖，不是因為站太久。',addInc:300,con:-5,rep:-3,mind:-3,log:'去顧建商工地的大門'}},
+  {t:'接，但抗爭的人想進來，你就當沒看到',r:(S,R)=>R()<.5?{t:'監視器拍到了。隔天組長打電話來，說你明天不用來了，語氣很平。',con:3,rep:-3,mind:-4}:{t:'工頭沒說什麼，只在月底把你的班劃掉一半。對面那個阿嬤經過的時候，對你點了一下頭。',addInc:150,con:2,rep:2}},
+  {t:'不接',r:{t:'你說你站累了。組長在電話那頭笑了一下，掛了。',con:2}}
+ ]},
+bg_sales:{scene:'ximen',tod:'dusk',title:'健康事業',
+ text:()=>`你在西門町被人叫住，是以前的客戶陳董，西裝還是很挺。他說他現在做「健康事業」，一個月組織收入五位數起跳。\n\n「你以前的業績我知道，」他說，「你跟我做，三個月就有下線。你認識的人那麼多。」\n\n你摸了一下口袋。認識的人，你還認識幾個。`,
+ ch:[
+  {t:S=>housed(S)?'加入（入會費 3,000），先拉以前橋下的老鄰居':'加入（入會費 3,000），先拉橋下的人',req:{money:3000},r:(S,R)=>R()<.5?{t:(housed(S)?'你把以前橋下的老鄰居拉去聽說明會，他':'你把一起睡的人拉去聽說明會，他')+'交了一筆入會費。三個禮拜後你拿到佣金，他拿到一箱沒人要的營養品。',money:2000,rep:-8,con:-8}:{t:'你拉到兩個人。第三個人錄了音，報警了。你被叫去派出所講了一個下午，錢沒賺到，入會費也沒拿回來。',money:-3000,rep:-8,con:-5,heat:1}},
+  {t:'只跟他喝杯茶，不碰',r:S=>({t:'他請你喝了一杯手搖飲，講了一個小時。臨走塞給你兩包試用品。你帶'+(housed(S)?'去橋下':'回橋下')+'，送給一個咳嗽的老人。',rep:2,con:1,mind:1})},
+  {t:'跟他說你現在什麼都不是，別浪費時間',r:{t:'他愣了一下，點點頭。名片還是塞進了你的口袋。',mind:-3}}
+ ]},
+bg_guarantor:{scene:'bridge',tod:'night',title:'簽名的人',
+ text:S=>`${housed(S)?'你去橋下看看以前的鄰居還在不在。有個新來的人，睡在你以前的老位置上，背對著你。':'橋下新來了一個人，睡在你對面的紙箱上，背對著你。'}你認得那件外套。\n\n他是你以前的朋友，那張借據是他拿來的。你簽名的時候，他在旁邊遞筆。\n\n他轉過身，看到你，整個人僵住。`,
+ ch:[
+  {t:'一拳揍下去',r:{t:'他沒有躲。鼻血滴在地上，他一直說對不起。旁邊的人沒有人來勸。\n\n你的手在抖，抖了很久。',mind:3,con:-4,rep:-3,heat:.5}},
+  {t:'給他半個便當，什麼都不問',r:{t:'他吃了一口就哭了。你們誰也沒說話。第二天他不見了，位子收得乾乾淨淨。',mind:-2,con:5,rep:1}},
+  {t:'叫他把欠你的還來',r:{t:'他翻遍全身，掏出兩百三十二塊和一支沒電的手機。你拿了兩百塊。回頭的時候，你看到他把剩下的塞回內褲。',money:200,mind:-4,con:-2}}
+ ]},
+bg_gamble:{scene:'alley',tod:'night',title:'再一次',
+ text:()=>`一個以前一起打牌的老朋友在巷口等你，穿得很體面，手上有一支新手機。\n\n「那間場子換地方了，在樓上。」他壓低聲音，「今天有人坐莊，賠率很好。你再玩一次，就一次，翻本。」\n\n你口袋裡的零錢，在褲子裡撞出聲音。`,
+ ch:[
+  {t:'帶著全部身家上去',req:{money:1000},r:(S,R)=>R()<.25?{t:'你贏了。贏了一整晚，數字多到你不敢確定是真的。天亮走出門，連空氣都不一樣。\n\n三天後，你又回去了。',money:10000,mind:4,con:-3}:{t:'你輸得很乾淨。最後一把，你連自己想押什麼都沒印象了。老朋友在樓梯口拍你肩膀：「下次再來。」',money:-S.money,mind:-8,con:-2}},
+  {t:'陪他在樓下站一下，不上樓',r:{t:'你陪他在檳榔攤站了二十分鐘。他一直看手機，你一直看樓梯。最後你說你要走了，他說：「你以前不是這樣的。」',mind:-2,con:2}},
+  {t:'轉身就走',r:{t:'你走了十幾步，聽到他在後面喊你的名字。你沒回頭，一直走到看不見巷口。\n\n那天晚上，夢裡全是骰子的聲音。',mind:-3,con:3}}
+ ]},
+bg_ill:{scene:'hospital',tod:'day',title:'表格',
+ text:()=>`和平醫院的社工輾轉找到你。她說你以前的病歷還在系統裡，符合重大傷病的資格，健保欠費可以免除，每個月還有一筆生活補助。\n\n「但是要定期回診，」她說，「三個月沒回，補助就停了。」\n\n她把表格推過來。你知道，回診那天，一整天就沒了。`,
+ ch:[
+  {t:'填表，接受補助',r:{t:'你簽了名，她在表格上蓋了三個章。之後每隔幾週，你得在醫院走廊坐一整個早上，等一個一分鐘就叫完的號碼。\n\n但藥終於吃得起了。',days:2,hp:8,addInc:100,mind:-1,set:{bgClinic:1},log:'申請重大傷病補助，要定期回診'}},
+  {t:'只拿藥，補助先不要',r:{t:'你說你不想被登記在系統裡。她看了你一下，沒再勸，只多塞了兩個月的藥。',days:1,hp:4,mind:-1}},
+  {t:'說你沒空，把表格留在桌上',r:{t:'你說你得去工作。她說下個月還會再打。你把表格折成四折塞進口袋，一直到後來，也沒有拿出來。',hp:-4,mind:-2}}
+ ]},
+bg_divorce:{scene:'station',tod:'dusk',title:'喜帖',
+ text:()=>`手機收到一則共同朋友轉來的訊息。前妻要再婚了，下個月在內湖一間餐廳。\n\n後面跟著她自己傳的：「你要不要來喝喜酒？就一桌朋友。」\n\n你想起那間房子，現在她的新對象已經住在裡面。`,
+ ch:[
+  {t:'包一個像樣的紅包，去',req:{money:1200},r:{t:'你把唯一一件襯衫燙了，坐在最後一桌。她穿白色，比你記得的瘦。敬酒的時候，她對你點了一下頭，很輕。\n\n回去的路上，你把空紅包袋折成一個小小的方塊。',money:-1200,mind:3,con:3,rep:-1}},
+  {t:'回一句「恭喜」，不去',r:{t:'你打了又刪，刪了又打，最後只剩兩個字。已讀以後，沒有回覆。',mind:-4}},
+  {t:'不回，把號碼封鎖',r:{t:'你把聯絡人刪了。那個號碼你背得出來，這才是你最討厭的地方。',mind:-6,con:-1}}
+ ]},
+bg_alone_newyear:{scene:S=>housed(S)?'room':'park',tod:'night',title:'初一',
+ text:S=>`大年初一的凌晨，萬華的店都拉下了鐵門，連便利商店的微波食品都被買光了。\n\n${housed(S)?'你把外套拉到下巴，一個人坐在住處的角落。牆外有人在放鞭炮，有人在笑。':'你把外套拉到下巴，在公園的長椅上坐著。遠處有人在放鞭炮，有人在笑。'}\n\n沒有人會打電話給你。你也想不出可以打給誰。`,
+ ch:[
+  {t:'去龍山寺排隊上第一炷香',r:{t:'你排了一個小時。輪到你的時候，不知道要許什麼，最後只說了兩個字：「平安。」把香插進爐裡，灰燙了你的手。',mind:3,rep:1}},
+  {t:'買一杯熱咖啡，站在便利商店門口喝',req:{money:65},r:{t:'店員跟你說新年快樂，你也說。那是這幾天你講的第一句話。',money:-65,mind:4}},
+  {t:'喝一瓶米酒，睡到天亮',req:{money:90},r:{t:'酒很便宜，一口下去，什麼都沒有了。醒來的時候太陽已經很高，口水沾在袖子上。',money:-90,addict:4,mind:2,hp:-1}}
+ ]},
+bg_alone_mule:{scene:'alley',tod:'dusk',title:'掛名',
+ text:()=>`一個年輕人在西昌街等你，穿著乾淨的球鞋。他說他在找「簽名」的人：新開一間公司，需要一個負責人掛名，一個月一萬，什麼都不用做。\n\n「你沒有家人，沒有麻煩，」他說，「最適合了。」\n\n他遞過來一支筆。你看著他乾淨的球鞋。`,
+ ch:[
+  {t:'簽，拿錢',r:(S,R)=>R()<.5?{t:'你簽了五張紙，領了八千塊。三個月後，他們的公司沒了，名字還掛在你身上。有掛號信寄來，'+(housed(S)?'寄到你住的地方，你不敢拆，塞在抽屜最底下。':'你沒有地址可以收。'),money:8000,con:-8,heat:1,log:'替人當了公司的掛名負責人'}:{t:'你簽了名。兩個禮拜後，警察'+(housed(S)?'找到你住的地方':'在橋下找到你')+'，問你認不認識幾個戶頭。你講了一整夜才被放走。錢，早就花掉了。',money:8000,con:-8,mind:-10,rep:-8,heat:3,log:'替人掛名，被警察約談'}},
+  {t:S=>housed(S)?'要他先付一筆錢，才簽':'要他先幫你租房間，才簽',r:(S,R)=>R()<.4?{t:housed(S)?'他笑了，說沒問題。當場從皮夾抽了一疊給你。你簽名的那幾張紙，一個字都沒看。':'他笑了，說沒問題。隔天他帶你去看雅房，押金他付。你簽名的那幾張紙，一個字都沒看。',money:3000,con:-6,heat:1.5}:{t:'他的笑容消失了。「你以為你有資格講條件？」他轉身走了，你再也沒見過他。',mind:-2}},
+  {t:'不簽',r:{t:'他把筆收回去，說下一個也行。你看著他走向巷子另一頭，有人從騎樓下站了起來。',con:3}}
+ ]},
+bg_kid:{scene:'office',tod:'day',title:'家長',
+ text:()=>`一個陌生號碼打來，是學校的導師。\n\n「家長，你小孩這個月的學費還沒繳，」她停了一下，「還有，家長會那天他一個人坐在位子上。他說你在外縣市工作。他問我，你什麼時候回來。」\n\n你握著公共電話的聽筒，投幣的聲音響了一下。`,
+ ch:[
+  {t:'把錢匯過去，說會再想辦法',req:{money:6000},r:{t:'你把存款領出來，匯到學校的帳戶。導師說謝謝，說他最近成績進步了。\n\n你說好，說辛苦了，然後在電話亭裡站到下一個人敲門。',money:-6000,mind:5,con:3,set:{bgKidPaid:1},log:'替小孩繳了學費'}},
+  {t:'跟導師說實話：你現在沒有地方住',r:{t:'導師沉默了很久。「我會跟學校申請補助，」她說，「但孩子那邊，你自己要跟他講。」\n\n你說好。掛了電話，你到現在還沒想好要怎麼講。',mind:-4,con:4,rep:-2,set:{bgKidKnows:1}}},
+  {t:'說下個月就匯，然後把電話掛掉',r:{t:'你掛了電話，在電話亭裡站了很久，直到後面的人敲了玻璃。',mind:-6,con:-5,set:{bgKidAvoid:1}}}
+ ]},
+bg_mom:{scene:'hospital',tod:'day',title:'縣立醫院',
+ text:()=>`鄰居打電話到社福中心留話：你媽在市場跌倒，送進了縣立醫院，髖骨斷了。\n\n「你媽不讓我們跟你講，」電話那頭說，「她說你在台北忙。」\n\n開刀要簽同意書，之後要有人照顧。客運到站，要四個小時。`,
+ ch:[
+  {t:'放下這邊，回去照顧她',r:(S,R)=>{const lose=!S.biz&&S.job&&R()<.5;return {t:'你回去待了三個禮拜。她在病床上第一句話是：「你瘦了。」第二句是：「你這樣回來，工作怎麼辦？」\n\n你說沒事。'+(lose?'回台北的時候，你的班已經有人在做了。':'回台北的車上，你一直想著那句話。'),days:21,noIncome:1,job:lose?null:undefined,mod:S.biz?-.1:0,mind:5,con:6,set:{bgMomHome:1},log:'回鄉照顧住院的媽媽'}}},
+  {t:'匯錢回去，請看護',req:{money:8000},r:{t:'你匯了錢。鄰居說，媽媽躺在病床上，每個人來都跟他們講：「我兒子在台北很有出息。」',money:-8000,mind:-4,con:3,set:{bgMomPaid:1},log:'匯錢給住院的媽媽請看護'}},
+  {t:'託鄰居照顧，自己沒回去',r:{t:'你說你抽不開身。鄰居沒有多說什麼。三個月後，媽媽打電話給你，聲音很小，一句埋怨也沒有，比被罵還讓你難受。',mind:-8,con:-6,set:{bgMomAway:1}}}
+ ]},
+bg_sibling:{scene:'alley',tod:'day',title:'放棄繼承',
+ text:()=>`你弟弟找到你了。他沒問你過得怎麼樣，只從包包拿出一疊文件，放在你面前。\n\n「老家的房子要處理，」他說，「你簽了放棄繼承，我們幾個才能辦過戶。」\n\n他頓了一下：「我們商量過，會給你一點錢。」`,
+ ch:[
+  {t:'簽，拿那筆錢',r:{t:'你簽了名。他把信封放在你手邊，六千塊，剛好是你一個月的房租。他起身的時候說：「有空回來看看。」你說好，兩個人都知道不會。',money:6000,con:-2,mind:-3,set:{bgSibSigned:1}}},
+  {t:'不簽，那間房子有我一份',r:{t:'你說你不簽。他看著你，眼睛紅了。「你這幾年在哪裡？你知道媽那時候……」他沒有說完。\n\n他把文件收回去，走了。你發現，不知道哪一種比較難受。',mind:-4,con:2,rep:-4,set:{bgSibRefused:1}}},
+  {t:'簽，但錢不要',r:{t:'你說錢不要，只請他們在爸媽的牌位前，放一包長壽菸。他愣住了，點了點頭。\n\n他走遠以後，你一個人站在原地，很久沒有動。',con:6,mind:2,set:{bgSibSigned:1}}}
+ ]}
+});
+FILL.push(
+ {id:'bg_taxi',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'job','taxi')&&!grayGigs(S).some(x=>x.name===GRAY[3]),w:3},
+ {id:'bg_chef',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'job','chef'),w:3},
+ {id:'bg_guard',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'job','guard'),w:3},
+ {id:'bg_sales',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'job','sales'),w:3},
+ {id:'bg_guarantor',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'cause','guarantor'),w:3},
+ {id:'bg_gamble',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'cause','gamble'),w:3},
+ {id:'bg_ill',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'cause','ill'),w:3},
+ {id:'bg_divorce',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'cause','divorce'),w:3},
+ {id:'bg_alone_newyear',ch:[2,3],loc:'*',cond:S=>bgIs(S,'family','alone'),w:3},
+ {id:'bg_alone_mule',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'family','alone'),w:3},
+ {id:'bg_kid',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'family','kid'),w:3},
+ {id:'bg_mom',ch:[3,4,5,6],loc:'*',cond:S=>bgIs(S,'family','mom'),w:3},
+ {id:'bg_sibling',ch:[2,3,4,5],loc:'*',cond:S=>bgIs(S,'family','sibling'),w:3}
+);
+{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);if(S.origin!=='drifter')return out;const f=k=>F(S,k),gone=['dead','killed'].includes(key);
+ out.push(bg(S,'family',{
+  alone:gone?'你的告別式是社福中心的人辦的。來了六個人，其中四個，你生前沒見過。':'你還是一個人過年。不同的是，現在有一個鄰居，每年除夕會敲你的門，塞一盒水餃。',
+  kid:gone?'你小孩二十歲那年，才從導師口中知道你的事。他去橋下站了一會兒，什麼也沒說。':f('bgKidPaid')?'孩子大學畢業那天，你坐在最後一排。他回頭找到你，舉起手揮了一下。':f('bgKidAvoid')?'你小孩長大了。你們一年見一次面，在同一間麵店，話不多，他每次都搶著付錢。':'孩子長大了，在一間你沒進去過的公司上班。他偶爾傳一張照片給你，沒有配字。',
+  mom:gone?'你媽後來才知道你在台北走了。鄰居說，她把你小時候的獎狀，貼在客廳最顯眼的地方。':f('bgMomAway')?'媽媽走的時候，你在外縣市。鄰居說，她最後一個月，每天都問今天有沒有人打電話來。':f('bgMomHome')||f('bgMomPaid')?'媽媽走的那天，你趕得上。她握著你的手，說：「你這樣就好。」':'媽媽身體還硬朗。你每個月寄一點錢，她每個月說不用。',
+  sibling:gone?'兄弟姊妹來認的時候，你弟蹲在地上哭了。他說他其實一直知道你在哪裡。':f('bgSibSigned')?'老家的房子賣了，你弟寄來一個紅包，上面寫著你的名字。':f('bgSibRefused')?'你和兄弟姊妹吵完那一架，三年沒講話。後來是你姊打來的，說：「過年回來吧。」':'兄弟姊妹每年過年約你吃一頓飯。你有時候去，有時候沒去。'}));
+ if(!gone)out.push(bg(S,'job',{taxi:'每次有計程車經過，你還是會習慣性看一眼跳表。',chef:'過年的時候，你會在巷口幫鄰居煮一鍋大鍋菜，沒有人付你錢。',guard:'你走進任何一棟大樓，還是會先看一眼出口在哪裡。',sales:'你現在跟人講話，還是會不由自主地先笑，再開口。'}));
+ return out}}
+{const P0=people;people=function(S){const out=P0(S);if(S.origin!=='drifter'||S.bg.family==='alone')return out;const f=k=>F(S,k);
+ const E={kid:['孩子','還在讀書的小孩',f('bgKidPaid')?'你替他繳過學費。':f('bgKidKnows')?'導師知道你現在的處境了。':f('bgKidAvoid')?'學校打來過，你沒有再接。':'他說你在外縣市工作。'],
+  mom:['媽媽','鄉下年邁的媽媽',f('bgMomHome')?'你回去照顧過她三個禮拜。':f('bgMomPaid')?'你匯錢給她請過看護。':f('bgMomAway')?'她住院的時候，你沒有回去。':'她說你在台北很好。'],
+  sibling:['兄弟姊妹','還有聯絡的家人',f('bgSibSigned')?'你簽了放棄繼承。':f('bgSibRefused')?'為了老家的房子，吵過一架。':'每年過年會約你吃飯。']}[S.bg.family];
+ out.splice(out.length-(S.legacy&&f('legacyMet')?1:0),0,{name:E[0],role:E[1],status:E[2]});return out}}
+
+return {items,pawnItem,redeemItem,sellID,achCheck,ACH,HINT,turning,invOf,jobInfo,takeNotices,CARDS,drawCards,applyCard,JOBS,NPCS,jobsAt,takeJob,quitJob,npcsAt,meet,tenYears,trustOf,MAPLOC,mapInfo,visit,miniSetup,finishMini,simMini,ORIGINS,CH,EV,ENDINGS,STAGES,LOC,BIZ,DIFF,WORLD,MODES,newState,originLabel,view,choose,advance,stageOf,goalText,season,dateStr,endingText:endingText3,epilogue:epilogue2,isRoom,worth,memory,people,quitGig,canQuitGig};
 })();
 if(typeof module!=='undefined')module.exports=G;
 

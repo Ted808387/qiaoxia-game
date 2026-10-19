@@ -380,7 +380,7 @@ function showEnding(key){
  const got=store.get(DONE)||[];if(!got.includes(key)){got.push(key);store.set(DONE,got)}
  store.del(SAVE);
  const E=G.ENDINGS[key];
- store.set(LAST,{origin:S.origin,oname:G.ORIGINS[S.origin].name,ending:key,day:S.day});
+ store.set(LAST,{origin:S.origin,oname:G.originLabel(S),ending:key,day:S.day});
  Scene.set(({councilor:'office',blackgold:'ximen',lizhang:'alley',lost_election:'bridge',indicted:'office',voice:'office',diploma:'office',south:'site',sea:'sea',lost_sea:'sea',dabo:'alley',whitewash:'ximen',jiaotou:'alley',killed:'alley',dead:'hospital',broken:'hospital',home:'room',peer:'office',stall:'alley',cart:'market',foreman:'site',recycler:'yard',tycoon:'site',tycoon_dark:'site',boss:'alley',singer:'ximen',teacher:'office',exonerated:'temple',family_home:'station',father:'room',debtfree:'room',revoked:'office',bankrupt:'bridge'})[key]||'bridge',{season:G.season(S.day),stage:G.stageOf(S),tod:key==='family_home'?'dawn':'dusk',dog:!!S.f.dog,look:{}});
  const epi=G.epilogue(S);
  const meta=store.get(METAK)||{origins:[]};if(!meta.origins.includes(S.origin))meta.origins.push(S.origin);store.set(METAK,meta);
@@ -397,7 +397,7 @@ function showEnding(key){
     <h4 style="margin-top:22px">十年後</h4>${G.tenYears(S,key).map(e=>`<p class="epi ten">${esc(e)}</p>`).join('')}
    </div>
    <div>
-    <h4>最後的你 · ${G.ORIGINS[S.origin].name}</h4>
+    <h4>最後的你 · ${G.originLabel(S)}</h4>
     <div class="final">${[['健康',S.hp],['精神',S.mind],['良知',S.con],['人脈',S.rep],['酒癮',S.addict],['存款',S.money]].map(([l,v])=>`<div>${l}<b>${Math.round(v).toLocaleString()}</b></div>`).join('')}</div>
     <p class="epi">這兩年的台北：${S.world.map(k=>G.WORLD[k].name).join('、')}</p>
     <h4>這一輪的成就${achNew.length?` · 新解鎖 ${achNew.length}`:''}</h4>
@@ -423,12 +423,12 @@ function showIntro(){
  const renderDiff=()=>{$('#diffs').innerHTML=Object.entries(G.DIFF).map(([k,d])=>`<button type="button" class="diff ${k===selDiff?'on':''}" data-k="${k}" aria-pressed="${k===selDiff}"><b>${d.name}</b><span>${d.desc}</span></button>`).join('');
   document.querySelectorAll('.diff').forEach(b=>b.addEventListener('click',()=>{selDiff=b.dataset.k;store.set(DIFFK,selDiff);renderDiff()}))};
  renderDiff();
- $('#origins').innerHTML=Object.entries(G.ORIGINS).map(([k,o])=>{const lock=o.locked&&!unlocked;return `<button class="origin" type="button" data-k="${k}" ${lock?'disabled':''}><span class="who">${lock?'尚未解鎖':o.who}</span><h3>${o.name}</h3><p>${lock?'達成任何一個四級以上的結局（當老闆、回頭拉人、清白、五金行……）後解鎖。':o.desc}</p>${lock?'':`<span class="trait">${o.trait}</span><span class="st">健康 ${o.st.hp} · 精神 ${o.st.mind} · 良知 ${o.st.con} · 酒癮 ${o.st.addict} · NT$ ${o.st.money}</span>`}</button>`}).join('');
+ $('#origins').innerHTML=Object.entries(G.ORIGINS).map(([k,o])=>{const lock=o.locked&&!unlocked;return `<button class="origin" type="button" data-k="${k}" ${lock?'disabled':''}><span class="who">${lock?'尚未解鎖':o.who}</span><h3>${o.name}</h3><p>${lock?'達成任何一個四級以上的結局（當老闆、回頭拉人、清白、五金行……）後解鎖。':o.desc}</p>${lock?'':`<span class="trait">${o.trait}</span><span class="st">${k==='drifter'?'數值依抽到的背景而定':`健康 ${o.st.hp} · 精神 ${o.st.mind} · 良知 ${o.st.con} · 酒癮 ${o.st.addict} · NT$ ${o.st.money}`}</span>`}</button>`}).join('');
  document.querySelectorAll('.origin').forEach(b=>b.addEventListener('click',()=>start(b.dataset.k)));
  const last=store.get(LAST);
  $('#legacyNote').innerHTML=last&&G.ENDINGS[last.ending]?`上一輩子：「${esc(last.oname)}」，撐了 ${last.day} 天，結局是「${G.ENDINGS[last.ending].name}」。<br>這一輩子，你可能會遇見他。`:'';
  const sv=store.get(SAVE);
- $('#introBtns').innerHTML=sv&&sv.S&&sv.S.v===10?`<button class="ghost" type="button" id="resume">繼續上次：第 ${sv.S.day} 天 · ${G.ORIGINS[sv.S.origin].name} · ${G.DIFF[sv.S.diff].name}</button>`:'';
+ $('#introBtns').innerHTML=sv&&sv.S&&sv.S.v===10?`<button class="ghost" type="button" id="resume">繼續上次：第 ${sv.S.day} 天 · ${G.originLabel(sv.S)} · ${G.DIFF[sv.S.diff].name}</button>`:'';
  if(sv&&sv.S&&sv.S.v===10)$('#resume').addEventListener('click',()=>resume(sv));
  {const ach=store.get(ACHK)||[];$('#collect').innerHTML=`${got.length?`已解鎖結局 ${got.length} / ${Object.keys(G.ENDINGS).length} · 成就 ${ach.length} / ${G.ACH.length}<br>`:''}<button class="ghost" type="button" id="galBtn" style="margin-top:8px">結局圖鑑與成就</button>`;$('#galBtn').addEventListener('click',showGallery)}
  Scene.set('station',{season:'秋',stage:0,tod:'night',look:{bag:1}});
