@@ -3263,6 +3263,44 @@ offerJob('sorter','cai_offer','caiJob','阿財把秤擦乾淨，看著你。\n\n
  '阿財給你一副棉手套，帶你看了一遍場子：「銅放這邊，鋁放那邊，有人拿電纜來，先問我。」',
  '你說再想想。阿財說：「好，你想來的時候，場子都在。」');
 
+/* ═════════ 政治線：任內的三件事，十年後依你怎麼做官分岔 ═════════ */
+const inOffice=S=>F(S,'polWon');const council=S=>S.f.office==='council';
+Object.assign(EV,{
+pol_aide:{scene:S=>council(S)?'office':'alley',tod:'night',skip:S=>!inOffice(S),title:S=>council(S)?'助理費':'睦鄰經費',
+ text:S=>council(S)?'選戰時幫你最多的樁腳林董，現在是你的辦公室主任。他把三份聘書放在你桌上。\n\n「這三個掛名當助理，薪水進來，我們拿去跑紅白帖、發中秋禮盒。大家都這樣，不然你哪來的錢顧地方？」\n\n聘書上的名字，你一個都不認識。':'里辦公處有一筆「睦鄰活動經費」，二十萬。\n\n里幹事說：「往年都辦里民旅遊，遊覽車上每個人一個便當、一個紅包。選舉的時候，大家就記得你。」\n\n巷口那條水溝，一下雨還是會淹。',
+ ch:[
+  {t:S=>council(S)?'簽，錢拿去顧地方':'照往年，辦旅遊',r:(S,R)=>({t:council(S)?'你簽了名。中秋節的禮盒，比對手多送了兩百份。林董說你終於懂事了。':'遊覽車開去清境農場。車上的人唱了一整路的卡拉 OK，下車的時候，每個人都跟你握手。',...(council(S)?{money:60000}:{}),rep:6,con:-8,set:{polDirty:1,polAide:1,...(R()<.35?{aideCase:1}:{})},log:council(S)?'用人頭助理領助理費':'用睦鄰經費辦里民旅遊'})},
+  {t:S=>council(S)?'不簽，請林董走人':'把錢拿去修水溝',r:S=>({t:council(S)?'林董收拾東西的時候，一句話都沒說。下個禮拜，你發現好幾個里長不接你的電話了。':'水溝修好的那天，下了一場大雨，巷口沒有淹。但年底的里民大會，來的人少了一半。',rep:-6,con:6,set:{polClean:1,polAlone:1}})}
+ ]},
+pol_service:{scene:S=>council(S)?'office':'temple',tod:'day',skip:S=>!inOffice(S),title:'兩通電話',
+ text:S=>'同一個早上，兩通電話。\n\n第一通是宮廟主委：他兒子酒駕擦撞機車，人被扣在派出所，「'+(council(S)?'議員':'里長')+'去關心一下，比較好說話」。\n\n第二通是以前睡你隔壁柱子的阿伯：社會局說他的低收入資格要取消，下午就要去複審，他不識字。\n\n兩邊都在等你。',
+ ch:[
+  {t:'先去派出所',r:{t:'你在派出所坐了二十分鐘，所長親自倒茶。主委的兒子交保出來，主委握著你的手，說下次選舉廟裡的人都是你的。\n\n下午你打給阿伯，他沒接。',rep:8,con:-8,set:{polFavor:1}}},
+  {t:'陪阿伯去社會局',r:{t:'你陪阿伯填完表，一題一題念給他聽。資格保住了。\n\n晚上主委傳了一則訊息給你，只有三個字：「知道了。」',con:6,rep:-3,mind:3,set:{polStreet:1}}},
+  {t:S=>`兩邊都交給${council(S)?'助理':'里幹事'}處理`,r:S=>({t:`${council(S)?'助理':'里幹事'}處理得很好，兩邊都沒出事。只是那天晚上，你想不起來阿伯的名字。`,mind:1,set:{polDistant:1}})}
+ ]},
+pol_party:{scene:S=>council(S)?'office':'alley',tod:'night',skip:S=>!inOffice(S),title:S=>council(S)?'提名':'樁腳',
+ text:S=>council(S)?'黨部書記長請你吃飯。\n\n「下個月河岸驅離案要表決，黨團的立場是贊成。你配合，下一屆的提名沒問題。」他頓了一下，「主席也在看你。萬華這一區的立委，需要一個從底層上來的故事。」':'選區的老議員約你在他的服務處喝茶。\n\n「我再一屆就退了。你幫我顧好這個里的票，下一屆，我把位子交給你。」他把一份名單推過來，「這些人，選舉前一個禮拜，都要拿到東西。」',
+ ch:[
+  {t:S=>council(S)?'配合黨團，投贊成':'答應，幫他顧票',r:S=>({t:council(S)?'表決那天，你按下贊成。橋下的人被清走的那個早上，你在立法院的公聽會上，被介紹成「從橋下走出來的議員」。':'選舉前一個禮拜，你挨家挨戶去送東西。有人收下，有人當著你的面把門關上。',rep:8,con:-10,set:{polParty:1},log:council(S)?'配合黨團投下驅離案贊成票':'答應幫老議員顧票'})},
+  {t:S=>council(S)?'不配合，退黨':'不答應',r:S=>({t:council(S)?'你在記者會上宣布退黨。隔天的報紙標題是：「街友議員翻臉」。':'老議員笑了笑，說年輕人有骨氣。下一屆，他把位子交給了自己的女婿。',rep:-5,con:6,mind:2,set:{polIndep:1}})}
+ ]}
+});
+ins(6,'pol_term','pol_aide');ins(6,'b6_betray','pol_service');ins(6,'c6_zheng','pol_party');
+{const T0=tenYears;tenYears=function(S,key){const out=T0(S,key);const A=AGE[S.origin]+12,f=k=>F(S,k);let y=null;
+ if(key==='councilor'){
+  if(f('polParty'))y=`你 ${A} 歲了。黨把你推出來選立委。萬華的競選總部，開在你以前睡過的那座橋旁邊，海報上的你穿著西裝。${f('polStreet')?'你選上了。就職那天，你把那張寫著「不收街友」的舊紅紙，帶進了立法院。':'你落選了，差了一萬多票。開票那晚，你一個人走回橋下，那裡已經沒有人了。'}`;
+  else if(f('polIndep'))y=`你 ${A} 歲了。你以無黨籍連任了兩屆。第三屆，你沒有再選，把位子讓給了一個你在社福中心認識的年輕社工。${f('polStreet')?'交接那天，那個不識字的阿伯也來了，坐在最後一排。':''}`;
+  else if(f('polFavor'))y=`你 ${A} 歲了。你連任了一屆。第三次選舉，宮廟的人換了支持別人，你以兩千票落選。你現在在大學兼課，講「地方政治」。`;
+ }else if(key==='blackgold'){
+  if(f('aideCase'))y=`你 ${A} 歲了。助理費的案子，在你第三屆的時候爆出來。你站在地檢署門口，對著鏡頭說這是「政治追殺」。判決還沒下來，你還是議員。`;
+  else if(f('polParty'))y=`你 ${A} 歲了。你當上了黨團總召，後來又選上了立委。萬華的服務處現在是林董在顧，門口的花籃一年四季都沒斷過。`;
+ }else if(key==='lizhang'){
+  if(f('polParty'))y=`你 ${A} 歲了。你當了兩屆里長，老議員退休的那年，把位子交給了你。你選上了市議員。${f('polStreet')?'上任第一天，你去橋下走了一圈。':'議會裡沒有人知道你以前睡在哪裡，你也沒說。'}`;
+  else if(f('polStreet'))y=`你 ${A} 歲了，連任了三屆里長。里辦公處門口的藤椅旁邊，多了一張板凳，是留給橋下的人坐的。`;
+ }
+ if(y)out[0]=y;return out}}
+
 return {items,pawnItem,redeemItem,sellID,achCheck,ACH,HINT,turning,invOf,jobInfo,takeNotices,CARDS,drawCards,applyCard,JOBS,NPCS,jobsAt,takeJob,quitJob,npcsAt,meet,tenYears,trustOf,MAPLOC,mapInfo,visit,miniSetup,finishMini,simMini,ORIGINS,CH,EV,ENDINGS,STAGES,LOC,BIZ,DIFF,WORLD,MODES,newState,view,choose,advance,stageOf,goalText,season,dateStr,endingText:endingText3,epilogue:epilogue2,isRoom,worth,memory,people,quitGig,canQuitGig};
 })();
 if(typeof module!=='undefined')module.exports=G;
