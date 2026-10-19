@@ -3231,6 +3231,14 @@ EV.gx_burn={scene:'alley',tod:'night',title:'嘴巴',
  ]};
 FILL.push({id:'gx_burn',ch:[2,3,4,5,6],loc:'*',cond:S=>(S.f.grayBurn||0)>0,w:3,repeat:1});
 
+/* ═════════ 修正：梅雨時已經有住處的人，東西不在橋下 ═════════ */
+{const e=EV.p3_flood;e.scene=S=>isRoom(S)?'room':'river';
+ e.ch.forEach(c=>{const s0=c.show;c.show=S=>!housed(S)&&(!s0||s0(S))});
+ e.ch.push(
+  {t:'把東西搬到高處，拿毛巾堵門縫',show:housed,r:S=>({t:(isRoom(S)?'你把床墊立起來，背包掛到門後的掛勾上，用三條毛巾塞住門縫。水滲進來兩公分，就停了。':'你把僅有的東西塞進塑膠袋，綁在床架最上面。整晚聽著雨聲，沒怎麼睡。')+(S.biz?'\n\n天亮你趕去店裡，東西泡壞了一半。':''),money:S.biz?-8000:-300,mind:-2})},
+  {t:'回橋下幫以前的鄰居搬東西',show:housed,req:{hp:40},r:{t:'你冒雨走回橋下。以前睡你旁邊的人看到你，愣了一下，然後把一袋東西塞到你手上：「幫我拿上去。」\n\n你們搬到半夜。回去的時候，你全身濕透，但手是熱的。',hp:-6,con:8,rep:8}}
+ )}
+
 return {items,pawnItem,redeemItem,sellID,achCheck,ACH,HINT,turning,invOf,jobInfo,takeNotices,CARDS,drawCards,applyCard,JOBS,NPCS,jobsAt,takeJob,quitJob,npcsAt,meet,tenYears,trustOf,MAPLOC,mapInfo,visit,miniSetup,finishMini,simMini,ORIGINS,CH,EV,ENDINGS,STAGES,LOC,BIZ,DIFF,WORLD,MODES,newState,view,choose,advance,stageOf,goalText,season,dateStr,endingText:endingText3,epilogue:epilogue2,isRoom,worth,memory,people,quitGig,canQuitGig};
 })();
 if(typeof module!=='undefined')module.exports=G;
