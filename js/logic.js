@@ -2924,6 +2924,18 @@ Object.assign(ENDGROUP,{assoc:'peer',assoc_dark:'dark',union:'stable',union_dark
   union_dark:`你 ${A} 歲了。你從工會退下來，資方給你一個顧問的頭銜。每年工安週，你都會收到一張邀請卡，你從來沒去過。`};
  if(Y[key]){if(out.length)out[0]=Y[key];else out.push(Y[key])}return out}}
 
+/* ═════════ 修正：開局卡已經認識的人，初見事件不再當陌生人 ═════════ */
+{const e=EV.c1_huei,t0=e.text;e.text=S=>{const t=t0(S);return S.card==='kai'?t.replace('你在萬華見過那種刺青，那是強哥的人。','你認得那張臉，是阿凱，替強哥做事的。很久以前，你欠過他一個人情。'):t};
+ const c=e.ch.find(x=>/去問他還缺不缺人/.test(x.t)),r0=c.r;
+ c.r=S=>S.card==='kai'?{...r0,t:'阿凱也認出你了，笑了一下：「好久不見。你欠我的那個人情，記得吧？」他丟給你一包菸，和一個印著電話號碼的打火機：「有事找你。」\n\n在萬華，有靠山的人比較不會被偷。',log:'在車站遇到阿凱，舊帳又接上了'}:r0}
+{const e=EV.f_gang,t0=e.text;e.text=S=>F(S,'strong')?'阿凱又在夜市口叫住你。皮夾克，脖子上的刺青。\n\n「上次說有事找你，現在有了。」他把菸彈到地上，「強哥那邊缺跑腿的，一天一千，現領。不用打卡，不用身分證。」':t0(S)}
+{const e=EV.c1_zheng,t0=e.text;e.text=S=>S.card==='zheng'?'環河南路的高架橋下。車子從頭頂開過去，整片水泥都在震。\n\n你找了一塊空地，剛把塑膠袋放下，一個瘦得像衣架的老人就從帆布裡探出頭，愣了一下：「是你喔？」\n\n是老鄭。你上次流落街頭的時候，就是他教你怎麼在這裡活下來。他看了你的塑膠袋很久，沒有問你怎麼又回來了。':t0(S);
+ const fight=e.ch.find(x=>/不讓。就這裡/.test(x.t)),s0=fight.show;fight.show=S=>S.card!=='zheng'&&(!s0||s0(S));
+ const first=e.ch.find(x=>/低頭說抱歉/.test(x.t)),t1=first.t,r1=first.r;
+ first.t=S=>S.card==='zheng'?'跟他說，你又回來了':t1;
+ first.r=S=>S.card==='zheng'?{t:'老鄭把旁邊的紙箱拍平，踢過來給你。「睡這裡。鞋子穿著睡，錢塞內褲。」他頓了一下，「這些你都知道了。」\n\n那天晚上，你發現一個叫黑仔的人一直在看你，像在看一個好欺負的新人。',con:2,rep:5,set:{soft:1},log:'回到橋下，老鄭還在'}:r1}
+{const e=EV.c2_lin,t0=e.text;e.text=S=>{const t=t0(S);return S.card==='sick'?t.replace('一個綁馬尾、穿反光背心的女人蹲在你面前，手上拿著兩杯熱豆漿。\n\n「我姓林，萬華社福中心的。叫我林姐就好。」她遞給你一杯。','林姐蹲在你面前，手上拿著兩杯熱豆漿。\n\n「又見面了。」她遞給你一杯，「上次你在醫院走廊昏倒，是我陪你去掛號的。你的藥有沒有按時吃？」'):t}}
+
 /* ═════════ 第六種出身「隨機」：四組要素各抽一個，組出這一局的人 ═════════ */
 ORIGINS.drifter={name:'隨機',who:'每一局都不一樣',desc:'你不想提以前的事。反正提了，也沒有人在聽。',st:{hp:55,mind:40,con:55,rep:15,addict:10,money:100},trait:'職業、遭遇、年紀、家人各抽一個，起始數值和後面遇到的事，都跟著抽到的背景走。'};
 const BG={
