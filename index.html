@@ -3215,7 +3215,23 @@ FILL.push(
  if(r&&r.dropGray){for(const g of grayGigs(S)){S.extra=(S.extra||0)-g.inc}S.side=(S.side||[]).filter(x=>!GRAY.includes(x.name))}
  return out}}
 
-return {items,pawnItem,redeemItem,sellID,achCheck,ACH,HINT,turning,invOf,jobInfo,takeNotices,CARDS,drawCards,applyCard,JOBS,NPCS,jobsAt,takeJob,quitJob,npcsAt,meet,tenYears,trustOf,MAPLOC,mapInfo,visit,miniSetup,finishMini,simMini,ORIGINS,CH,EV,ENDINGS,STAGES,LOC,BIZ,DIFF,WORLD,MODES,newState,view,choose,advance,stageOf,goalText,season,dateStr,endingText:endingText3,epilogue:epilogue2,isRoom,worth,memory,people};
+/* ═════════ 自己辭兼差：志豪那份不能辭；灰色的辭了，對方不一定放過你 ═════════ */
+const canQuitGig=x=>x.kind==='gig'&&x.name!=='志豪跟著你做工';
+function quitGig(S,name){const g=(S.side||[]).find(x=>x.name===name&&canQuitGig(x));if(!g)return false;
+ S.side=S.side.filter(x=>x!==g);S.extra=(S.extra||0)-g.inc;
+ const gray=GRAY.includes(name);if(gray)S.f.grayBurn=(S.f.grayBurn||0)+1;
+ S.notices=(S.notices||[]).concat(gray?`你不做「${name}」了。熱度不會因此消失，以前一起做的人也記得你。`:`你不做「${name}」了。`);
+ S.log.push({day:S.day,t:`不做「${name}」了`});return true}
+EV.gx_burn={scene:'alley',tod:'night',title:'嘴巴',
+ text:()=>`收工回去的路上，以前一起做的一個人在巷口等你，靠著機車抽菸。\n\n「聽說你不做了。」他把菸彈到你腳邊，「不做可以。我只是想知道，你嘴巴緊不緊。」\n\n他後面那台車，引擎沒熄。`,
+ ch:[
+  {t:'塞三千給他，說你什麼都沒看到',req:{money:3000},r:S=>({t:'他把錢折起來，塞進胸前的口袋。「早這樣不就好了。」\n\n之後再也沒人來找你。',money:-3000,mind:-3,set:{grayBurn:S.f.grayBurn-1}})},
+  {t:'跟他說，你什麼都不會講',r:(S,R)=>R()<.5?{t:'他盯著你看了很久，點點頭，騎車走了。\n\n你回去以後，手抖了一個晚上。',mind:-4,set:{grayBurn:S.f.grayBurn-1}}:{t:'他說他不信。車上下來兩個人。\n\n你躺在巷子裡，等到他們的車聲聽不見了，才爬起來。',hp:-12,mind:-6,set:{grayBurn:S.f.grayBurn-1}}},
+  {t:'轉身走去派出所',r:(S,R)=>R()<.5?{t:'你在派出所坐到天亮。員警做了筆錄，說會加強巡邏。那個人沒有再出現過，但你在萬華的名字，從此跟「抓耙仔」連在一起。',rep:-5,con:3,set:{grayBurn:S.f.grayBurn-1,snitch:1}}:{t:'你走到一半，背後的機車加速了。你醒來的時候在和平醫院。\n\n員警來做筆錄，你說你沒看到臉。',hp:-15,mind:-5,set:{grayBurn:S.f.grayBurn-1}}}
+ ]};
+FILL.push({id:'gx_burn',ch:[2,3,4,5,6],loc:'*',cond:S=>(S.f.grayBurn||0)>0,w:3,repeat:1});
+
+return {items,pawnItem,redeemItem,sellID,achCheck,ACH,HINT,turning,invOf,jobInfo,takeNotices,CARDS,drawCards,applyCard,JOBS,NPCS,jobsAt,takeJob,quitJob,npcsAt,meet,tenYears,trustOf,MAPLOC,mapInfo,visit,miniSetup,finishMini,simMini,ORIGINS,CH,EV,ENDINGS,STAGES,LOC,BIZ,DIFF,WORLD,MODES,newState,view,choose,advance,stageOf,goalText,season,dateStr,endingText:endingText3,epilogue:epilogue2,isRoom,worth,memory,people,quitGig,canQuitGig};
 })();
 if(typeof module!=='undefined')module.exports=G;
 
@@ -3974,12 +3990,14 @@ function openDlg(html){$('#dlgIn').innerHTML=html;$('#dlg').hidden=false;$('#dlg
 function closeDlg(){$('#dlg').hidden=true}
 function showJobs(loc){const L=G.MAPLOC[loc];const js=G.jobsAt(S,loc);
  openDlg(`<span class="sect">${L.name} · 找工作</span><h2 class="mtitle">這裡缺人</h2>
- <p class="mhelp">正職只能有一份，應徵新的就會辭掉舊的。換工作不會花掉時間，選好之後還是要決定這幾天去哪裡。「不一定有工」的大約一半的日子排不到；「固定班」每天都有。兼差（賣唱、代寫、外送這類）是另外算的，最多兩份，每一份都會多耗一點體力。</p>
+ <p class="mhelp">正職只能有一份，應徵新的就會辭掉舊的。換工作不會花掉時間，選好之後還是要決定這幾天去哪裡。「不一定有工」的大約一半的日子排不到；「固定班」每天都有。兼差（賣唱、代寫、外送這類）是另外算的，最多兩份，每一份都會多耗一點體力。兼差可以在這裡辭掉；灰色的兼差辭了，以前一起做的人不一定放過你。</p>
  ${S.job&&!S.biz?`<div class="curjob">你現在做的是「${esc(S.job.name)}」，${S.job.income}/天。<button type="button" class="ghost" id="quitJob">辭職</button></div>`:''}
+ ${(S.side||[]).filter(G.canQuitGig).map((x,i)=>`<div class="curjob">兼差「${esc(x.name)}」，+${x.inc}/天。<button type="button" class="ghost quitGig" data-i="${i}">不做了</button></div>`).join('')}
  <div class="jobs">${js.map(j=>`<div class="job ${j.current?'cur':''}"><div class="jh"><b>${j.name}</b><span>${j.income}<small>/天</small></span></div><p>${j.desc}</p><div class="jt"><span class="${j.stable?'ok':'no2'}">${j.stable?'固定班':'不一定有工'}</span>${j.meals?'<span class="ok">包餐</span>':''}<span>損耗 ${j.wear>=.15?'高':j.wear>=.09?'中':'低'}</span></div>${j.reqs.length?`<div class="reqs">${j.reqs.map(r=>`<span class="req ${r.ok?'ok':'no'}">${r.ok?'':'✕ '}${r.l}</span>`).join('')}</div>`:''}<button type="button" class="choice2 take" data-k="${j.key}" ${j.ok&&!j.current?'':'disabled'}>${j.current?'正在做':S.job&&!S.biz?'換成這份工作':'去應徵'}</button>${S.job&&!S.biz&&!j.current&&j.ok?`<small class="swap">應徵後會辭掉「${esc(S.job.name)}」</small>`:''}</div>`).join('')}</div>
  <div class="mrow"><button type="button" class="ghost" id="dlgBack">回地圖</button></div>`);
  document.querySelectorAll('#dlgIn .take').forEach(b=>b.addEventListener('click',()=>{if(G.takeJob(S,b.dataset.k)){hud();save();closeDlg();showMap()}}));
  const q=$('#quitJob');q&&q.addEventListener('click',()=>{G.quitJob(S);hud();save();closeDlg();showMap()});
+ {const gs=(S.side||[]).filter(G.canQuitGig);document.querySelectorAll('#dlgIn .quitGig').forEach(b=>b.addEventListener('click',()=>{G.quitGig(S,gs[+b.dataset.i].name);hud();save();closeDlg();showMap()}))}
  $('#dlgBack').addEventListener('click',()=>{closeDlg()});
 }
 function showNpc(id,loc){const p=G.npcsAt(S,loc).find(x=>x.id===id);if(!p)return;const prof=(G.people(S).find(x=>x.name===p.name)||{});
